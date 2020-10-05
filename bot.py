@@ -1,5 +1,7 @@
 import os
+import json
 import discord
+import requests
 from discord.ext import commands
 
 
@@ -22,8 +24,41 @@ initial_extensions = ["cogs.basic","cogs.admin"]
 @bot.event
 async def on_ready():
     print(f"Logged in")
-#    game = discord.Game("Coding Myself", type=1, url="https://twitch.tv/psuedoo")
-#    await bot.change_presence(activity=game)
+
+    # TODO : Make it where config doesn't get overwritten by defaults.
+    # need to keep the default in a default config to compare to the edited one then to set the value to false
+
+    path = "~/coding/discordbot/configs"
+    response = requests.get("https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json")
+    
+    gross_emoji_list = response.json()['emojis']
+    gross_emoji_list = gross_emoji_list[24:275]
+    emoji_list = []
+    
+    for emoji in gross_emoji_list:
+        emoji_list.append(emoji['shortname'])
+
+    for guild in bot.guilds:
+        # Maybe exclude the admin roles if you can see perms?
+        # Don't want to be able to assign yourself an admin role with choosing an emoji
+        roles = []
+        for role in guild.roles:
+            roles.append({'name': role.name, 'role_id': role.id})
+        default_config_dict = {'owner_id': guild.owner.id,
+                            'roles': roles,
+                            'emojis': emoji_list,
+                            'role_message_id': None}
+        
+        default_config_json = json.dumps(default_config_dict, indent=2)
+        
+
+
+        with open(f"{guild.id}_config.json", "w") as fp:
+            fp.write(default_config_json)
+            # Write the default config here..
+
+
+
 
 @bot.event
 async def on_member_join(member):
@@ -36,6 +71,9 @@ async def on_member_join(member):
 async def test(ctx):
     await ctx.send("The test has passed!")
 
+@bot.command(name="emoji")
+async def emoji(ctx):
+    print(bot.get_emoji(1))
 
 if __name__ == '__main__':
     for extension in initial_extensions:

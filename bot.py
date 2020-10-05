@@ -1,7 +1,9 @@
+
 import os
 import json
 import discord
 import requests
+from pathlib import Path
 from discord.ext import commands
 
 
@@ -28,7 +30,7 @@ async def on_ready():
     # TODO : Make it where config doesn't get overwritten by defaults.
     # need to keep the default in a default config to compare to the edited one then to set the value to false
 
-    path = "~/coding/discordbot/configs"
+    config_path = "~/coding/discordbot/configs"
     response = requests.get("https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json")
     
     gross_emoji_list = response.json()['emojis']
@@ -46,17 +48,23 @@ async def on_ready():
             roles.append({'name': role.name, 'role_id': role.id})
         default_config_dict = {'owner_id': guild.owner.id,
                             'roles': roles,
+                            'role_message_id': None,
+                            'role_message_channel_id': None,                            
                             'emojis': emoji_list,
-                            'role_message_id': None}
+                            }
         
         default_config_json = json.dumps(default_config_dict, indent=2)
-        
+        # ~/coding/discordbot/configs/guild.id_config.json 
+        config_file = Path(f"configs/{guild.id}_config.json")
+        if config_file.is_file():
+            print(f"{guild.id}'s config already exists.")
+            continue
 
+        else:
+            with open(config_file, "w") as fp:
+                fp.write(default_config_json)
 
-        with open(f"{guild.id}_config.json", "w") as fp:
-            fp.write(default_config_json)
-            # Write the default config here..
-
+            print(f"Created config for: {guild.id}")
 
 
 

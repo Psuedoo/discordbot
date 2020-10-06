@@ -1,4 +1,3 @@
-
 import os
 import json
 import discord
@@ -66,7 +65,7 @@ async def on_ready():
                                 'owner_id': guild.owner.id,
                                 'roles': roles,
                                 'role_message_id': None,
-                                'role_message_channel_id': None,                            
+                                'role_message_channel_id': None,
                                 'emojis': emoji_list,
                             }
         

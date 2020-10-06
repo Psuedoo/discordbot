@@ -3,6 +3,7 @@ import os
 import json
 import discord
 import requests
+from cogs.utils import checks
 from pathlib import Path
 from discord.ext import commands
 
@@ -13,15 +14,30 @@ GUILD = os.environ['DISCORD_GUILD']
 token=os.environ["TOKEN"]
 guild=os.environ["DISCORD_GUILD"] 
 
-# client = discord.Client()
-
-
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='?', intents=intents)
-
 initial_extensions = ["cogs.basic","cogs.admin"]
+
+def get_configs(bot):
+    guild_configs = {} 
+
+    for guild in bot.guilds:
+
+        with open(f'configs/{guild.id}_config.json') as f:
+            data = json.load(f)
+            guild_configs[guild.id] = data
+    return guild_configs
+
+def prefix(bot, message):
+    id = message.channel.guild.id
+    configs = get_configs(bot)
+    prefix = configs[id]['prefix']
+    return prefix 
+
+
+bot = commands.Bot(command_prefix=prefix, intents=intents)
+
 
 @bot.event
 async def on_ready():
@@ -46,11 +62,12 @@ async def on_ready():
         roles = []
         for role in guild.roles:
             roles.append({'name': role.name, 'role_id': role.id})
-        default_config_dict = {'owner_id': guild.owner.id,
-                            'roles': roles,
-                            'role_message_id': None,
-                            'role_message_channel_id': None,                            
-                            'emojis': emoji_list,
+        default_config_dict = {'prefix': '?',
+                                'owner_id': guild.owner.id,
+                                'roles': roles,
+                                'role_message_id': None,
+                                'role_message_channel_id': None,                            
+                                'emojis': emoji_list,
                             }
         
         default_config_json = json.dumps(default_config_dict, indent=2)
@@ -79,9 +96,26 @@ async def on_member_join(member):
 async def test(ctx):
     await ctx.send("The test has passed!")
 
+@commands.check(checks.is_bot_enabled)
+@bot.command(name="setprefix")
+async def set_prefix(ctx, prefix):
+    guild_id = ctx.message.channel.guild.id
+    configs = get_configs(ctx.bot)
+    current_config = configs[guild_id]
+    current_config['prefix'] = str(prefix)
+    with open(f"configs/{guild_id}_config.json", "w") as config_file:
+        config_file.write(json.dumps(current_config, indent=2))
+    await ctx.send(f"Prefix has been updated to {prefix}")
+
 @bot.command(name="emoji")
 async def emoji(ctx):
     print(bot.get_emoji(1))
+
+@bot.command(name="roles")
+async def roles(ctx):
+    roles = ctx.author.roles
+    print(f"{roles}")
+
 
 if __name__ == '__main__':
     for extension in initial_extensions:

@@ -64,7 +64,6 @@ class Basic(commands.Cog):
         response = requests.get(url, headers=headers)
         await ctx.send(response.json()['joke'])
 
-    
 
 def setup(bot):
     bot.add_cog(Basic(bot))

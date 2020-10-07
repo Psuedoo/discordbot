@@ -42,8 +42,6 @@ bot = commands.Bot(command_prefix=prefix, intents=intents)
 async def on_ready():
     print(f"Logged in")
 
-    # TODO : Make it where config doesn't get overwritten by defaults.
-    # need to keep the default in a default config to compare to the edited one then to set the value to false
 
     config_path = "~/coding/discordbot/configs"
     response = requests.get("https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json")

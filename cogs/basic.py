@@ -98,17 +98,28 @@ class Basic(commands.Cog):
     @commands.command(name="linkemoji")
     async def linkemoji(self, ctx, role_name, emoji=None):
         roles = {}
+        linked_role = None
+        
+        # Roles of the server
         guild_roles = ctx.channel.guild.roles
+
+        # Iterating over every role
         for role in guild_roles:
 
-            if role is role_name and emoji:
+            # Checking each role to see if role_name is a valid role
+            if role.name == role_name and emoji:
                 roles[role] = f"{emoji}"
-            elif role is role_name and not emoji:
+                linked_role = role
+            elif role.name == role_name and not emoji:
                 roles[role] = ":one:"
+                linked_role = role
             else:
                 continue
 
-        await ctx.send(f"Linked {role.name} with {emoji}")
+        if linked_role:
+            await ctx.send(f"Linked {linked_role.name} with {emoji}")
+        else:
+            await ctx.send("I found no role...")
 
     # TODO : Stream content for 10/5 : 10/6 night: 
     # TODO : Create commands to edit the config

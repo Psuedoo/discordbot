@@ -2,6 +2,7 @@ import os
 import json
 import discord
 import requests
+import random
 from cogs.utils import checks
 from pathlib import Path
 from discord.ext import commands
@@ -37,7 +38,8 @@ def prefix(bot, message):
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
-
+# ISSUE : Roles created after config are not updated
+# FIX   : Maybe a role creation event listener to update the config with the new role
 @bot.event
 async def on_ready():
     print(f"Logged in")
@@ -49,17 +51,27 @@ async def on_ready():
     gross_emoji_list = response.json()['emojis']
     gross_emoji_list = gross_emoji_list[24:275]
     emoji_list = []
-    
+    temp_emoji_list = []
+
     for emoji in gross_emoji_list:
         emoji_list.append(emoji['shortname'])
+        temp_emoji_list.append(emoji['shortname'])
 
     for guild in bot.guilds:
         # Maybe exclude the admin roles if you can see perms?
         # Don't want to be able to assign yourself an admin role with choosing an emoji
         roles = []
         for role in guild.roles:
-            roles.append({'name': role.name, 'role_id': role.id})
+            
+            # Assigning a random default emoji for each role
+            emoji = random.choice(temp_emoji_list)
+            temp_emoji_list.remove(emoji)
+
+            roles.append({'name': role.name, 'role_id': role.id, 'emoji': emoji})
+
+        # Default configuration
         default_config_dict = {'prefix': '?',
+                                'guild_id': guild.id,
                                 'owner_id': guild.owner.id,
                                 'roles': roles,
                                 'role_message_id': None,
@@ -67,8 +79,9 @@ async def on_ready():
                                 'emojis': emoji_list,
                             }
         
+        # Converting default config to json, then writing to config file
         default_config_json = json.dumps(default_config_dict, indent=2)
-        # ~/coding/discordbot/configs/guild.id_config.json 
+
         config_file = Path(f"configs/{guild.id}_config.json")
         if config_file.is_file():
             print(f"{guild.id}'s config already exists.")

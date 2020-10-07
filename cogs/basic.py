@@ -6,6 +6,7 @@ import json
 from cogs.utils import checks
 from discord.ext import commands
 from discord.abc import Messageable
+from discord.utils import get
 
 def get_configs(bot):
     guild_configs = {} 
@@ -15,6 +16,7 @@ def get_configs(bot):
         with open(f'configs/{guild.id}_config.json') as f:
             data = json.load(f)
             guild_configs[guild.id] = data
+
     return guild_configs
 
 
@@ -22,29 +24,46 @@ class Basic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
-    # Bot has to:
-    # find channel.message to attach reactions to
-    # tie certain reactions to certain roles
-    # listen for users to click reaction
-    # if user clicks reaction, assign corresponding role
-
+    # TODO : Added listener for un-react and remove the corresponding role
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(*reactions):
+    async def on_raw_reaction_add(self, *reactions):
        
-       for reaction in reactions:
+        for reaction in reactions:
             print(reaction)
 
+        for guild in self.bot.guilds:
+            guild_id = guild.id 
 
-       # message_id = 762503476340064288
-       # channel = bot.Guild.id
-       # message = await channel.fetch_message(message_id)
-       # 
-       # print(message)
-       # users = await message.reaction.users()
-       # print(users)
-        
+            configs = get_configs(self.bot)
+            
+
+            current_config = configs[guild_id]
+          
+            message_id = current_config['role_message_id']
+            channel_id = current_config['role_message_channel_id']
+
+            if message_id and channel_id:
+                
+                channel = await self.bot.fetch_channel(channel_id)
+                message = await channel.fetch_message(message_id)
+
+                # Reactor's User ID
+                user_id = reaction.user_id
+                #user = await guild.fetch_member(user_id)
+                emoji = reaction.emoji
+
+                user = reaction.member
+
+                for role in current_config['roles']:
+                    if emoji.name == role['emoji']:
+                        # Assigns role to corresponding reacted emoji
+                
+                        roles = discord.utils.get(guild.roles, name=role['name'])
+                        await user.add_roles(roles)
+                        print(f"Assigned {role['name']} to {user_id}.")
+
+               
 
     @commands.command(name="reactions")
     async def reactions(self, ctx):
@@ -96,7 +115,7 @@ class Basic(commands.Cog):
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="linkemoji")
-    async def linkemoji(self, ctx, role_name, emoji=None):
+    async def linkemoji(self, ctx, role_name, emoji):
         roles = {}
         linked_role = None
         
@@ -107,29 +126,56 @@ class Basic(commands.Cog):
         for role in guild_roles:
 
             # Checking each role to see if role_name is a valid role
+           
             if role.name == role_name and emoji:
                 roles[role] = f"{emoji}"
                 linked_role = role
-            elif role.name == role_name and not emoji:
-                roles[role] = ":one:"
-                linked_role = role
             else:
                 continue
-
+        
+        # Confirmation Message
         if linked_role:
             await ctx.send(f"Linked {linked_role.name} with {emoji}")
         else:
             await ctx.send("I found no role...")
 
-    # TODO : Stream content for 10/5 : 10/6 night: 
-    # TODO : Create commands to edit the config
-    # TODO :    -- ?setmsgid <message_id> COMPLETE?
-    # TODO :    -- ?setchannel <#channel> COMPLETE?
-    # TODO :    -- ?createroll <role_name>
-    # TODO :    -- ?linkemoji <role_name> <emoji=None> (if emoji=None, pick random one from emoji list in config)
+        # Updating config with new emoji
+        guild_id = ctx.message.channel.guild.id
+        configs = get_configs(ctx.bot)
 
-    # TODO : Then and only then, after all the above are finished, we can fix the listener for assigning roles
-    #           based on reaction to a message. We could do it normally, but we want it to be dynamic across servers.
+        current_config = configs[guild_id]
+       
+        roles = current_config['roles']
+
+        for role in roles:
+            if role['role_id'] == linked_role.id:
+                role['emoji'] = emoji
+                break
+            else:
+                continue
+        
+        
+        
+        with open(f"configs/{guild_id}_config.json", "w") as config_file:
+            config_file.write(json.dumps(current_config, indent=2))
+        
+    @commands.command(name="emojirole")
+    async def emojirole(self, ctx, role_name):
+        guild_id = ctx.message.channel.guild.id
+        configs = get_configs(ctx.bot)
+
+        current_config = configs[guild_id]
+        
+
+        if role_name:
+            for role in ctx.channel.guild.roles:
+                if role.name == role_name:
+                    searched_role = role
+
+            for role in current_config['roles']:
+                if role['role_id'] == searched_role.id:
+                    await ctx.send(role['emoji'])
+
 
 
 

@@ -14,11 +14,10 @@ class Config:
         self.guild_name = config_data.get('guild_name', guild.name)
         self.guild_id = config_data.get('guild_id', guild.id)
         self.owner_id = config_data.get('owner_id', guild.owner.id)
-        roles = []
+        roles = {}
         for role in guild.roles:
-            roles.append({'name': role.name,
-                            'role_id': role.id,
-                            'emoji': None})
+            roles[role.id] = {'name': role.name,
+                            'emoji': None}
         self.roles = config_data.get('roles', roles)
         self.role_message_id = config_data.get('role_message_id', None)
         self.role_message_channel_id = config_data.get('role_message_channel_id', None)

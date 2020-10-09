@@ -27,46 +27,62 @@ class Basic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+        
     # TODO : Added listener for un-react and remove the corresponding role
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, *reactions):
-       
-        
-
         for reaction in reactions:
             print(reaction)
+        
+        guild = await self.bot.fetch_guild(reaction.guild_id)
+        current_config = instantiate_configs(self.bot.guilds, guild.id)
 
-        for guild in self.bot.guilds:
-            guild_id = guild.id 
+        message_id = current_config.role_message_id 
+        channel_id = current_config.role_message_channel_id
 
-            current_config = instantiate_configs(self.bot.guilds, guild_id)
-            # current_config = get_configs(self.bot, guild_id) # OLD 
-          
-            message_id = current_config.role_message_id 
-            channel_id = current_config.role_message_channel_id
+        if message_id == reaction.message_id and channel_id == reaction.channel_id:
+            
+            # Reactor's User ID
+            user_id = reaction.user_id
 
-            if message_id and channel_id:
-                
-                channel = await self.bot.fetch_channel(channel_id)
-                message = await channel.fetch_message(message_id)
+            emoji = reaction.emoji
 
-                # Reactor's User ID
-                user_id = reaction.user_id
-                #user = await guild.fetch_member(user_id)
-                emoji = reaction.emoji
+            user = reaction.member
 
-                user = reaction.member
+            for role in current_config.roles:
+                if emoji.name == role.get('emoji'):
+                    # Assigns role to corresponding reacted emoji
+            
+                    roles = discord.utils.get(guild.roles, name=role.get('name'))
+                    await user.add_roles(roles)
+                    print(f"Assigned {role.get('name')} to {user_id}.")
 
-                for role in current_config.roles:
-                    if emoji.name == role.get('emoji'):
-                        # Assigns role to corresponding reacted emoji
-                
-                        roles = discord.utils.get(guild.roles, name=role.get('name'))
-                        await user.add_roles(roles)
-                        print(f"Assigned {role.get('name')} to {user_id}.")
 
-               
+    @commands.Cog.listener()
+    async def on_guild_role_create(self, role):
+        current_config = instantiate_configs(self.bot.guilds, role.guild.id)
+        current_config.roles.append({'name': role.name, 'role_id': role.id, 'emoji': None})
+        current_config.update_config()
+
+
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role):
+        current_config = instantiate_configs(self.bot.guilds, role.guild.id)
+
+        c_role = [l_role for l_role in current_config.roles if l_role.get('role_id') == role.id]
+        current_config.roles.pop(current_config.roles.index(c_role[0]))
+        current_config.update_config()
+
+    @commands.Cog.listener()
+    async def on_guild_role_update(self, before, after):
+        current_config = instantiate_configs(self.bot.guilds, before.guild.id)
+        
+        config_role = [role for role in current_config.roles if role.get('role_id') ==  before.id]
+        config_role[0]['name'] = after.name
+
+        current_config.update_config()
+
 
     @commands.command(name="randomnumber", aliases=["randnum",])
     async def randomnumber(self, ctx, max_number=1000):
@@ -88,6 +104,7 @@ class Basic(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="setmessageid")
     async def setmessageid(self, ctx, msg_id):
+
         guild_id = ctx.message.channel.guild.id
         current_config = instantiate_configs(ctx.bot.guilds, guild_id)
 
@@ -105,17 +122,8 @@ class Basic(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="createrole")
     async def createrole(self, ctx, role_name):
-        guild_id = ctx.message.channel.guild.id
-
         role = await ctx.message.channel.guild.create_role(name=role_name)
-        
-        current_config = get_configs(ctx.bot.guilds, guild_id)
-
-        current_config.roles.append({'name': role.name, 'role_id': role.id, 'emoji': None})
-
-        current_config.update_config()
-
-
+    
         await ctx.send(f"{role_name} has been successfully created.")
 
 
@@ -128,37 +136,44 @@ class Basic(commands.Cog):
         
         # Roles of the server
         guild_roles = ctx.channel.guild.roles
-
-        # Iterating over every role
-        for role in guild_roles:
-
-            # Checking each role to see if role_name is a valid role
-           
-            if role.name == role_name and emoji:
-                roles[role] = f"{emoji}"
-                linked_role = role
-            else:
-                continue
         
-        # Confirmation Message
-        if linked_role:
-            await ctx.send(f"Linked {linked_role.name} with {emoji}")
-        else:
-            await ctx.send("I found no role...")
-
-        # Updating config with new emoji
-        guild_id = ctx.message.channel.guild.id
-        current_config = instantiate_configs(ctx.bot.guilds, guild_id)
-        
+        current_config = instantiate_configs(self.bot.guilds, ctx.message.channel.guild.id)
+       
+        emoji_is_used = False
         for role in current_config.roles:
-            if role.get('role_id') == linked_role.id:
-                role['emoji'] = emoji
-                break
+
+            if role.get('emoji') == emoji:
+                emoji_is_used = True
+                await ctx.send("That emoji is already in use.")
+                
+
+        if not emoji_is_used:
+            for role in current_config.roles:
+            
+                if role.get('name') == role_name and emoji: 
+                    role['emoji'] = f"{emoji}"
+                    linked_role = role
+          
+            # Confirmation Message
+            if linked_role:
+                await ctx.send(f"Linked {linked_role.get('name')} with {emoji}")
             else:
-                continue
-        
-        current_config.update_config() 
-        
+                await ctx.send("I found no role...")
+
+           
+            for role in current_config.roles:
+                if role.get('role_id') == linked_role.get('id'):
+                    role['emoji'] = emoji
+                    break
+                else:
+                    continue
+            
+            current_config.update_config() 
+        elif emoji_is_used:
+            pass
+
+
+
     @commands.command(name="emojirole")
     async def emojirole(self, ctx, role_name):
         guild_id = ctx.message.channel.guild.id

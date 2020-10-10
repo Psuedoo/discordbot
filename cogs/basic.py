@@ -189,6 +189,19 @@ class Basic(commands.Cog):
             if role.get('emoji') == emoji:
                 role['emoji'] = None
                 unlinked_emoji = True
+
+                channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
+                message = await channel.fetch_message(current_config.role_message_id)
+                
+                role_embed = message.embeds[0]
+                for index, field in enumerate(role_embed.fields):
+                    if field.name == role.get('name'):
+                        role_embed.remove_field(index)
+                await message.edit(embed=role_embed)
+
+                await message.remove_reaction(emoji, self.bot.user)
+                
+
                 await ctx.send(f"Unlinked {emoji} from {role.get('name')}.")
                 break
 

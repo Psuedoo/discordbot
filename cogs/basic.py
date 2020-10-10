@@ -31,32 +31,34 @@ class Basic(commands.Cog):
     # TODO : Added listener for un-react and remove the corresponding role
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, *reactions):
-        for reaction in reactions:
-            print(reaction)
+    async def on_raw_reaction_add(self, reaction):
         
-        guild = await self.bot.fetch_guild(reaction.guild_id)
-        current_config = instantiate_configs(self.bot.guilds, guild.id)
+        if reaction.member.bot:
+            return
+        else:
 
-        message_id = current_config.role_message_id 
-        channel_id = current_config.role_message_channel_id
+            guild = await self.bot.fetch_guild(reaction.guild_id)
+            current_config = instantiate_configs(self.bot.guilds, guild.id)
 
-        if message_id == reaction.message_id and channel_id == reaction.channel_id:
-            
-            # Reactor's User ID
-            user_id = reaction.user_id
+            message_id = current_config.role_message_id 
+            channel_id = current_config.role_message_channel_id
 
-            emoji = reaction.emoji
+            if message_id == reaction.message_id and channel_id == reaction.channel_id:
+                
+                # Reactor's User ID
+                user_id = reaction.user_id
 
-            user = reaction.member
+                emoji = reaction.emoji
 
-            for role in current_config.roles.values():
-                if emoji.name == role.get('emoji'):
-                    # Assigns role to corresponding reacted emoji
-            
-                    roles = discord.utils.get(guild.roles, name=role.get('name'))
-                    await user.add_roles(roles)
-                    print(f"Assigned {role.get('name')} to {user_id}.")
+                user = reaction.member
+
+                for role in current_config.roles.values():
+                    if emoji.name == role.get('emoji'):
+                        # Assigns role to corresponding reacted emoji
+                
+                        roles = discord.utils.get(guild.roles, name=role.get('name'))
+                        await user.add_roles(roles)
+                        print(f"Assigned {role.get('name')} to {user_id}.")
 
 
     @commands.Cog.listener()
@@ -97,24 +99,40 @@ class Basic(commands.Cog):
         response = requests.get(url, headers=headers)
         await ctx.send(response.json()['joke'])
 
-    # ISSUE : Can only use 'ctx.fetch_message()' in channel that command was run
-    # FIX   : Maybe supply channel id first? Maybe just run command in same channel?
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="setmessageid")
-    async def setmessageid(self, ctx, msg_id):
+    @commands.command(name="setchannel")
+    async def setchannel(self, ctx):
 
         guild_id = ctx.message.channel.guild.id
+        
         current_config = instantiate_configs(ctx.bot.guilds, guild_id)
-
-        current_config.role_message_id = int(msg_id)
         
-        message = await ctx.fetch_message(int(msg_id))
-        
-        current_config.role_message_channel_id = message.channel.id
-       
+        current_config.role_message_channel_id = int(ctx.message.channel.id)
+            
         current_config.update_config()
+
+        linked_roles = {}
+
+        for role in current_config.roles.values():
+            if role.get('emoji'):
+                linked_roles['name'] = role.get('name')
+                linked_roles['emoji'] = role.get('emoji')
+
         
-        await ctx.send(f"Message ID has been updated to {msg_id}\nMessage Channel ID has been updated to {message.channel.id}")
+
+        role_embed = discord.Embed(title="Reaction Roles")
+
+        for role in linked_roles.items():
+            role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
+
+        await ctx.send("React with the following emojis for the corresponding role:")
+        message = await ctx.send(embed=role_embed)
+
+        current_config.role_message_id = int(message.id)
+
+        current_config.update_config()
+
+    
 
     # TODO : After role creation, add to config file
     @commands.check(checks.is_bot_enabled)
@@ -146,9 +164,38 @@ class Basic(commands.Cog):
                 if role.get('name') == role_name and emoji:
                     role['emoji'] = emoji
                     await ctx.send(f"Linked {role.get('name')} with {emoji}")
-                    break
-            current_config.update_config()
+                    
+                    channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
+                    message = await channel.fetch_message(current_config.role_message_id)
+                    
+                    role_embed = message.embeds[0]
+                    role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
+                    await message.edit(embed=role_embed)
 
+                    await message.add_reaction(emoji)
+                    
+                    break
+
+        
+        current_config.update_config()
+
+    @commands.check(checks.is_bot_enabled)
+    @commands.command(name="unlinkemoji")
+    async def unlinkemoji(self, ctx, emoji):
+        current_config = instantiate_configs(self.bot.guilds, ctx.message.channel.guild.id)
+        unlinked_emoji = False
+
+        for role in current_config.roles.values():
+            if role.get('emoji') == emoji:
+                role['emoji'] = None
+                unlinked_emoji = True
+                await ctx.send(f"Unlinked {emoji} from {role.get('name')}.")
+                break
+
+        if not unlinked_emoji:
+            await ctx.send(f"Couldn't find a role linked with {emoji}.")
+
+        current_config.update_config()
 
 def setup(bot):
     bot.add_cog(Basic(bot))

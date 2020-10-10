@@ -29,23 +29,26 @@ class Basic(commands.Cog):
 
         
     # TODO : Added listener for un-react and remove the corresponding role
-    async def role_embed_remove(self, config, del_role):
+    async def role_embed_remove(self, config, del_role=None, emoji=None):
+        
         for role in config.roles.values():
-            if role.get('emoji') and role.get('name') == del_role.name:
-                emoji = role.get('emoji') 
-                channel = await self.bot.fetch_channel(config.role_message_channel_id)
-                message = await channel.fetch_message(config.role_message_id)
-                
-                role_embed = message.embeds[0]
-                for index, field in enumerate(role_embed.fields):
-                    if field.name == role.get('name'):
-                        role_embed.remove_field(index)
-                await message.edit(embed=role_embed)
+            if role.get('emoji'):
+                if emoji and role.get('emoji') == emoji or del_role and role.get('name') == del_role.name:
+                    emoji = role.get('emoji') 
+                    channel = await self.bot.fetch_channel(config.role_message_channel_id)
+                    message = await channel.fetch_message(config.role_message_id)
+                    
+                    role_embed = message.embeds[0]
+                    for index, field in enumerate(role_embed.fields):
+                        if field.name == role.get('name'):
+                            role_embed.remove_field(index)
+                    await message.edit(embed=role_embed)
 
-                await message.remove_reaction(emoji, self.bot.user)
-        config.update_config()
-
-         
+                    await message.remove_reaction(emoji, self.bot.user)
+                    return {'name': role.get('name'), 'emoji': emoji}
+                    config.update_config()
+                    break
+        return None
 
 
     @commands.Cog.listener()
@@ -201,31 +204,14 @@ class Basic(commands.Cog):
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="unlinkemoji")
-    async def unlinkemoji(self, ctx, emoji):
+    async def unlinkemoji(self, ctx, emoji, role=None):
         current_config = instantiate_configs(self.bot.guilds, ctx.message.channel.guild.id)
-        unlinked_emoji = False
 
-        for role in current_config.roles.values():
-            if role.get('emoji') == emoji:
-                role['emoji'] = None
-                unlinked_emoji = True
+        unlinked_role = await self.role_embed_remove(current_config, emoji=emoji)
 
-                channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
-                message = await channel.fetch_message(current_config.role_message_id)
-                
-                role_embed = message.embeds[0]
-                for index, field in enumerate(role_embed.fields):
-                    if field.name == role.get('name'):
-                        role_embed.remove_field(index)
-                await message.edit(embed=role_embed)
+        await ctx.send(f"Unlinked {unlinked_role.get('emoji')} from {unlinked_role.get('name')}.")
 
-                await message.remove_reaction(emoji, self.bot.user)
-                
-
-                await ctx.send(f"Unlinked {emoji} from {role.get('name')}.")
-                break
-
-        if not unlinked_emoji:
+        if not unlinked_role:
             await ctx.send(f"Couldn't find a role linked with {emoji}.")
 
         current_config.update_config()

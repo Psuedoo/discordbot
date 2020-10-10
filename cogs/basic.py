@@ -53,11 +53,9 @@ class Basic(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):
-        
         if reaction.member.bot:
             return
         else:
-
             guild = await self.bot.fetch_guild(reaction.guild_id)
             current_config = instantiate_configs(self.bot.guilds, guild.id)
 
@@ -80,6 +78,32 @@ class Basic(commands.Cog):
                         roles = discord.utils.get(guild.roles, name=role.get('name'))
                         await user.add_roles(roles)
                         print(f"Assigned {role.get('name')} to {user_id}.")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, reaction):
+        
+        guild = await self.bot.fetch_guild(reaction.guild_id)
+        current_config = instantiate_configs(self.bot.guilds, guild.id)
+
+        message_id = current_config.role_message_id 
+        channel_id = current_config.role_message_channel_id
+
+        if message_id == reaction.message_id and channel_id == reaction.channel_id:
+            
+            # Reactor's User ID
+            user_id = reaction.user_id
+
+            emoji = reaction.emoji
+
+            user = await guild.fetch_member(user_id)
+
+            for role in current_config.roles.values():
+                if emoji.name == role.get('emoji'):
+                    # Removes role to corresponding reacted emoji
+            
+                    roles = discord.utils.get(guild.roles, name=role.get('name'))
+                    await user.remove_roles(roles, reason="Unreacted from react message")
+                    print(f"Removed {role.get('name')} from {user_id}.")
 
 
     @commands.Cog.listener()

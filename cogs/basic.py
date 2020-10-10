@@ -29,6 +29,24 @@ class Basic(commands.Cog):
 
         
     # TODO : Added listener for un-react and remove the corresponding role
+    async def role_embed_remove(self, config, del_role):
+        for role in config.roles.values():
+            if role.get('emoji') and role.get('name') == del_role.name:
+                emoji = role.get('emoji') 
+                channel = await self.bot.fetch_channel(config.role_message_channel_id)
+                message = await channel.fetch_message(config.role_message_id)
+                
+                role_embed = message.embeds[0]
+                for index, field in enumerate(role_embed.fields):
+                    if field.name == role.get('name'):
+                        role_embed.remove_field(index)
+                await message.edit(embed=role_embed)
+
+                await message.remove_reaction(emoji, self.bot.user)
+        config.update_config()
+
+         
+
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):
@@ -71,6 +89,8 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
         current_config = instantiate_configs(self.bot.guilds, role.guild.id)
+
+        await self.role_embed_remove(current_config, role)
         current_config.roles.pop(f"{role.id}")
         current_config.update_config()
 

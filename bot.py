@@ -1,21 +1,18 @@
 import os
-import json
 import discord
-import requests
-import random
 from config import Config
 from cogs.utils import checks
 from pathlib import Path
 from discord.ext import commands
 
 
-token=os.environ["TOKEN"]
+token = os.environ["TOKEN"]
 # guild=os.environ["DISCORD_GUILD"] 
 
 intents = discord.Intents.default()
 intents.members = True
 
-initial_extensions = ["cogs.basic","cogs.admin"]
+initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound"]
 
 def instantiate_configs(guilds, specific_guild_id=None):
     if specific_guild_id:

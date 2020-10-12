@@ -9,11 +9,8 @@ from pathlib import Path
 from discord.ext import commands
 
 
-TOKEN = os.environ['TOKEN']
-GUILD = os.environ['DISCORD_GUILD']
-
 token=os.environ["TOKEN"]
-guild=os.environ["DISCORD_GUILD"] 
+# guild=os.environ["DISCORD_GUILD"] 
 
 intents = discord.Intents.default()
 intents.members = True

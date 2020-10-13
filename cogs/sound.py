@@ -41,6 +41,9 @@ class Sound(commands.Cog):
             return
 
         if self.db.search(Command.command_name == command):
+            audio_src = self.db.search(Command['command_name'] == command)
+            audio_src = audio_src[0]['file']
+            await self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(audio_src)))
             await message.channel.send(f"You've called a command.")
 
 

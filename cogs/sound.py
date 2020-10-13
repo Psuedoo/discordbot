@@ -24,10 +24,18 @@ def instantiate_configs(guilds, specific_guild_id=None):
 class Sound(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.voice_client = None
 
-    @commands.command(name="playsound")
-    async def playsound(self, ctx):
-        return 
-        
+    @commands.command(name="join")
+    async def join(self, ctx):
+        channel = ctx.author.voice.channel
+        self.voice_client = await channel.connect()
+
+    @commands.command(name="leave")
+    async def leave(self, ctx):
+        channel = ctx.author.voice.channel
+        await self.voice_client.disconnect()
+         
+
 def setup(bot):
     bot.add_cog(Sound(bot))

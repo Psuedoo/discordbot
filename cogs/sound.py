@@ -1,4 +1,5 @@
 import os
+import re
 import discord
 from tinydb import TinyDB, Query 
 from config import Config
@@ -29,6 +30,19 @@ class Sound(commands.Cog):
         self.voice_client = None
         self.db = TinyDB(os.path.expanduser('~/coding/sounds/sounds.json'))
 
+    @commands.Cog.listener(name="on_message")
+    async def sound_command_listener(self, message):
+
+        Command = Query()
+
+        if message.content.startswith('!'):
+            command = message.content[1:]
+        elif not message.content.startswith('!'):
+            return
+
+        if self.db.search(Command.command_name == command):
+            await message.channel.send(f"You've called a command.")
+
 
     @commands.command(name="join")
     async def join(self, ctx):
@@ -54,6 +68,7 @@ class Sound(commands.Cog):
         for sound in self.db:
             sounds.append(sound)
         await ctx.send(sounds)
+
 
 def setup(bot):
     bot.add_cog(Sound(bot))

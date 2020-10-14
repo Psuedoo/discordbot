@@ -13,24 +13,37 @@ class SoundFile:
         else:
             self.title = '%(title)s'
 
+
         self.ydl_opts = {'format': 'bestaudio',
                         'noplaylist': True,
                         'outtmpl': f'~/coding/sounds/{self.title}.%(ext)s',
                         'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
-
+         
+        
         p = Path('~')
-        self.path = p / 'coding' / 'sounds' / 'sounds.json'
-        self.db = TinyDB(os.path.expanduser(self.path))
+        self.path = p / 'coding' / 'sounds'
+        self.file_path = f'~/coding/sounds/{self.title}'
+
+        self.db = TinyDB(f'{os.path.expanduser(self.path)}/sounds.json')
         
 
     def download_sound(self):
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             ydl.download([self.url])
 
+        if os.path.isfile(os.path.expanduser(self.file_path)+'.m4a'):
+            extension = '.m4a'
+        elif os.path.isfile(os.path.expanduser(self.file_path)+'.opus'):
+            extension = '.opus'
+        else:
+            extension = '.savingasdiffext'
+ 
+        self.file_path = self.file_path+extension
+
         self.add_command()
 
     def add_command(self):
-        command_info = {'file': f'~/coding/sounds/{self.title}.opus',
+        command_info = {'file': self.file_path,
                         'command_name': str(self.command_name)}
 
         self.db.insert(command_info)

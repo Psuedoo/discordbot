@@ -72,6 +72,5 @@ class Sound(commands.Cog):
             sounds.append(sound)
         await ctx.send(sounds)
 
-
 def setup(bot):
     bot.add_cog(Sound(bot))

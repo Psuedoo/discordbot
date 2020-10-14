@@ -1,18 +1,46 @@
 import os
 import discord
+import asyncio
 from config import Config
 from cogs.utils import checks
 from pathlib import Path
 from discord.ext import commands
 
-
 token = os.environ["TOKEN"]
-# guild=os.environ["DISCORD_GUILD"] 
 
 intents = discord.Intents.default()
 intents.members = True
 
 initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound"]
+
+class Server:
+    def __init__(self):
+        self.message = None 
+
+    async def handle_echo(self, reader, writer):
+        data = await reader.read(100)
+        message = data.decode()
+        
+        print(f"Received {message!r}.")
+        self.message = message
+
+
+        print(f"Send: {message!r}")
+        writer.write(data)
+        await writer.drain()
+
+        print("Close the connection")
+        writer.close()
+
+
+    async def socket_main(self):
+        server = await asyncio.start_server(self.handle_echo, 'localhost', 3000)
+
+        #addr = server.sockets[0].getsockname()
+
+        async with server:
+            await server.serve_forever()
+
 
 def instantiate_configs(guilds, specific_guild_id=None):
     if specific_guild_id:
@@ -38,16 +66,18 @@ def prefix(bot, message):
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
-# ISSUE : Roles created after config are not updated
-# FIX   : Maybe a role creation event listener to update the config with the new role
+server = Server()
+
+
 @bot.event
 async def on_ready():
-    print(f"Logged in")
-
+    print("Logged in")
     configs = instantiate_configs(bot.guilds)
 
     for config in configs:
         print(config.guild_id)
+
+    await server.socket_main()
 
 @bot.event
 async def on_member_join(member):
@@ -70,8 +100,17 @@ async def set_prefix(ctx, prefix):
     await ctx.send(f"Prefix has been updated to {prefix}")
 
 
+@bot.command(name="vctest")
+async def vctest(ctx):
+    if server.message == "xp":
+
+        sound = bot.get_cog('Sound')
+        await sound.join(ctx)
+
+
 if __name__ == '__main__':
     for extension in initial_extensions:
         bot.load_extension(extension)
+
 
 bot.run(token)

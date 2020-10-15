@@ -13,33 +13,26 @@ intents.members = True
 
 initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound"]
 
-class Server:
-    def __init__(self):
-        self.message = None 
 
-    async def handle_echo(self, reader, writer):
-        data = await reader.read(100)
-        message = data.decode()
-        
-        print(f"Received {message!r}.")
-        self.message = message
+async def handle_echo(reader, writer):
+    data = await reader.read(100)
+    message = data.decode()
 
+    await vctest(message)
 
-        print(f"Send: {message!r}")
-        writer.write(data)
-        await writer.drain()
+    print(f"Received {message!r}.")
 
-        print("Close the connection")
-        writer.close()
+    await writer.drain()
+
+    print("Close the connection")
+    writer.close()
 
 
-    async def socket_main(self):
-        server = await asyncio.start_server(self.handle_echo, 'localhost', 3000)
+async def socket_main():
+    server = await asyncio.start_server(handle_echo, 'localhost', 3000)
 
-        #addr = server.sockets[0].getsockname()
-
-        async with server:
-            await server.serve_forever()
+    async with server:
+        await server.serve_forever()
 
 
 def instantiate_configs(guilds, specific_guild_id=None):
@@ -66,8 +59,6 @@ def prefix(bot, message):
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
-server = Server()
-
 
 @bot.event
 async def on_ready():
@@ -77,7 +68,7 @@ async def on_ready():
     for config in configs:
         print(config.guild_id)
 
-    await server.socket_main()
+    await socket_main()
 
 @bot.event
 async def on_member_join(member):
@@ -101,11 +92,11 @@ async def set_prefix(ctx, prefix):
 
 
 @bot.command(name="vctest")
-async def vctest(ctx):
-    if server.message == "xp":
-
-        sound = bot.get_cog('Sound')
-        await sound.join(ctx)
+async def vctest(message, ctx=None):
+    
+    sound = bot.get_cog('Sound')
+    await sound.join()
+    await sound.sound_command_listener(message)
 
 
 if __name__ == '__main__':

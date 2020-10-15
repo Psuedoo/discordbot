@@ -32,29 +32,45 @@ class Sound(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def sound_command_listener(self, message):
-
         Command = Query()
+        if type(message) != str:
 
-        if message.content.startswith('!'):
-            command = message.content[1:]
-        elif not message.content.startswith('!'):
-            return
+            if message.content.startswith('!'):
+                command = message.content[1:]
+            elif not message.content.startswith('!'):
+                return
 
-        if self.db.search(Command.command_name == command):
-            audio_src = self.db.search(Command['command_name'] == command)
-            audio_src = audio_src[0]['file']
-            await self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(audio_src)))
-            await message.channel.send(f"You've called a command.")
+            if self.db.search(Command.command_name == command):
+                audio_src = self.db.search(Command['command_name'] == command)
+                audio_src = audio_src[0]['file']
+                await self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(audio_src)))
+                await message.channel.send(f"You've called a command.")
+        elif type(message) is str:
+            if self.db.search(Command.command_name == message):
+                audio_src = self.db.search(Command['command_name'] == message)
+                audio_src = audio_src[0]['file']
+                await self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(audio_src)))
+
+
+
 
 
     @commands.command(name="join")
-    async def join(self, ctx):
-        channel = ctx.author.voice.channel
-        self.voice_client = await channel.connect()
+    async def join(self, ctx=None):
+        if not self.voice_client:
+            if ctx:
+                channel = ctx.author.voice.channel
+                self.voice_client = await channel.connect()
+            else:
+                guild = self.bot.get_guild(440869747626868736)
+                psuedo = await guild.fetch_member(266388033631158273)
+                channel = psuedo.voice.channel
+                self.voice_client = await channel.connect()
+        else:
+            pass
 
     @commands.command(name="leave")
-    async def leave(self, ctx):
-        channel = ctx.author.voice.channel
+    async def leave(self):
         await self.voice_client.disconnect()
 
     @commands.check(checks.is_bot_enabled)

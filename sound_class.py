@@ -35,6 +35,10 @@ class SoundFile:
             extension = '.m4a'
         elif os.path.isfile(os.path.expanduser(self.file_path)+'.opus'):
             extension = '.opus'
+        elif os.path.isfile(os.path.expanduser(self.file_path)+'.ogg'):
+            extension = '.ogg'
+        elif os.path.isfile(os.path.expanduser(self.file_path)+'.mp3'):
+            extension = '.mp3'
         else:
             extension = '.savingasdiffext'
  

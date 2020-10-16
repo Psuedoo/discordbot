@@ -96,8 +96,7 @@ async def vctest(message, ctx=None):
     
     sound = bot.get_cog('Sound')
     await sound.join()
-    await sound.sound_command_listener(message)
-
+    await sound.sound_handler(message)
 
 if __name__ == '__main__':
     for extension in initial_extensions:

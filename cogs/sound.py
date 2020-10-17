@@ -18,18 +18,22 @@ def instantiate_configs(guilds, specific_guild_id=None):
                 return Config(guild)
 
     else:
-        configs = []
+        return [Config(guild) for guild in guilds]
+
+def instantiate_dbs(guilds, specific_guild_id=None):
+    if specific_guild_id:
         for guild in guilds:
-            configs.append(Config(guild))
-        return configs
+            if guild.id == specific_guild_id:
+                return TinyDB(Config(guild).sounds)
 
-
+    else:
+        return [TinyDB(Config(guild).sounds) for guild in guilds]
 
 class Sound(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.voice_client = None 
-        self.db = TinyDB(os.path.expanduser('~/coding/sounds/sounds.json'))
+        self.guilds = self.bot.guilds
+        self.voice_client = None
         self.queue = asyncio.Queue()
         self.lock = asyncio.Lock()
 
@@ -52,8 +56,8 @@ class Sound(commands.Cog):
                 await self._handle_play(item)
                 self.queue.task_done()
 
-    async def sound_handler(self, sound):
-        sound = self.get_sound_file(sound)
+    async def sound_handler(self, sound, discord_id=None):
+        sound = self.get_sound_file(sound, discord_id)
         if sound:
             await self.queue.put(sound)
             async with self.lock:
@@ -61,23 +65,35 @@ class Sound(commands.Cog):
                 await self.queue.join()
                 await asyncio.gather(task)
 
-    def get_sound_file(self, sound):
+    def get_sound_file(self, sound, discord_id=None):
         Command = Query()
-        print(sound)
-        return self.db.search(Command.command_name == sound)[0]['file']
+        guild = self.bot.get_guild(int(discord_id))
+        config = Config(guild)
+        db = TinyDB(config.sounds)
 
+        return db.search(Command.command_name == sound)[0]['file']
+        
+       # for db in dbs:
+       #     if sound_file:
+       #         return sound_file
 
     @commands.command(name="join")
-    async def join(self, ctx=None):
+    async def join(self, ctx=None, twitch_channel=None, discord_id=None):
+
+        # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
+        guild = self.bot.get_guild(int(discord_id))
+        config = Config(guild)
         if not self.voice_client:
             if ctx:
                 channel = ctx.author.voice.channel
                 self.voice_client = await channel.connect()
             else:
-                guild = self.bot.get_guild(440869747626868736)
-                psuedo = await guild.fetch_member(266388033631158273)
-                channel = psuedo.voice.channel
-                self.voice_client = await channel.connect()
+                streamer = await guild.fetch_member(int(config.streamer_id))
+                channel = streamer.voice.channel
+                if channel:
+                    self.voice_client = await channel.connect()
+                else:
+                    print("No channel to connect to")
         else:
             pass
 
@@ -89,7 +105,7 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd")
     async def soundadd(self, ctx, name, url):
-        sound = SoundFile(name, url, title=name)
+        sound = SoundFile(guild, name, url, title=name)
         sound.download_sound()
         await ctx.send(f"Added {name} to sounds!")
 
@@ -100,11 +116,12 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="sounddelete")
     async def sound_delete(self, ctx, name):
-        Command = Query()   
-        table = self.db.table('_default')
+        Command = Query()
+        db = instantiate_dbs(self.guilds, ctx.guild)
+        table = db.table('_default')
         
         try:
-            sound_dir = [sound.get('file') for sound in self.db if sound.get('command_name') == name][0]
+            sound_dir = [sound.get('file') for sound in db if sound.get('command_name') == name][0]
         except IndexError as e:
             await ctx.send("Sound doesn't exist")
             return
@@ -120,8 +137,9 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds")
     async def viewsounds(self, ctx):
-        sounds = []
-        for sound in self.db:
+        db = instantiate_dbs(self.guilds, ctx.guild)
+        sounds = [sound.get('command_name') for sound in db]
+        for sound in db:
             sounds.append(sound.get('command_name'))
         await ctx.send(sounds)
 

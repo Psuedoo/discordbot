@@ -81,13 +81,14 @@ class Sound(commands.Cog):
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
 
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
-        guild = self.bot.get_guild(int(discord_id))
-        config = Config(guild)
         if not self.voice_client:
             if ctx:
+                guild = ctx.guild
                 channel = ctx.author.voice.channel
                 self.voice_client = await channel.connect()
             else:
+                guild = self.bot.get_guild(int(discord_id))
+                config = Config(guild)
                 streamer = await guild.fetch_member(int(config.streamer_id))
                 channel = streamer.voice.channel
                 if channel:
@@ -105,7 +106,7 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd")
     async def soundadd(self, ctx, name, url):
-        sound = SoundFile(guild, name, url, title=name)
+        sound = SoundFile(ctx.guild, name, url, title=name)
         sound.download_sound()
         await ctx.send(f"Added {name} to sounds!")
 

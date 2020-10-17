@@ -9,6 +9,7 @@ class SoundFile:
     def __init__(self, guild, command_name=None, url=None, title=None):
         self.command_name = command_name
         self.url = url
+        self.guild = guild
         self.guild_id = guild.id
         self.config = Config(guild)
         if title:
@@ -50,7 +51,7 @@ class SoundFile:
         self.add_command()
 
     def add_command(self):
-        config = Config(self.guild_id)
+        config = Config(self.guild)
         command_info = {'file': self.file_path,
                         'command_name': str(self.command_name)}
 

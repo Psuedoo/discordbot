@@ -28,7 +28,20 @@ class CustomCommand:
             return
 
     def delete_custom_command(self, command_name):
-        pass
+        Command = Query()
+        table = self.db.table('_default')
+        
+        try:
+            command = [command.get('file') for command in self.db if command.get('command_name') == command_name][0]
+        except IndexError as e:
+            return "Sound doesn't exist"
+
+        try:
+            table.remove(Command.command_name == command_name)
+        except:
+            return f"Failed to delete {command_name} sound."
+        else:
+            return f"Successfully deleted {command_name} sound!"
 
     def view_custom_commands(self):
         commands = [command.get('command_name') for command in self.db.all()]

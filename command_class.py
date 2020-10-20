@@ -18,8 +18,11 @@ class CustomCommand:
     def handle_command(self, message):
         Command = Query()
         command = message.content[1:]
-        response = self.db.search(Command.command_name == command)[0]
-        return response.get('command_response')
+        try:
+            response = self.db.search(Command.command_name == command)[0]
+            return response.get('command_response')
+        except:
+            return None
 
     def add_custom_command(self, command_name, command_response):
         if command_name and command_response:

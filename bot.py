@@ -77,7 +77,8 @@ async def on_message(message):
         return
     else:
         commands = CustomCommand(message.guild)
-        if message.content.startswith('!') or message.content[1:] in commands.view_custom_commands():
+        guild_prefix = prefix(bot, message)
+        if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
             await message.channel.send(commands.handle_command(message))
         else:
             await bot.process_commands(message)

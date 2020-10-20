@@ -93,10 +93,15 @@ async def set_prefix(ctx, prefix):
 
 @bot.command(name="vctest")
 async def vctest(message, ctx=None):
-    
+    print(message)
+    tags = message.split(";")
+    print(tags)
+    sound_name = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("sound_name=")][0]
+    channel_name = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("channel_name=")][0]
+    discord_id = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("discord_id=")][0]
     sound = bot.get_cog('Sound')
-    await sound.join()
-    await sound.sound_handler(message)
+    await sound.join(None, channel_name, discord_id)
+    await sound.sound_handler(sound_name, discord_id)
 
 if __name__ == '__main__':
     for extension in initial_extensions:

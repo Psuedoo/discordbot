@@ -2,12 +2,16 @@ import os
 import youtube_dl
 from pathlib import Path
 from tinydb import TinyDB, Query
+from config import Config
 
 
 class SoundFile:
-    def __init__(self, command_name, url, title=None):
+    def __init__(self, guild, command_name=None, url=None, title=None):
         self.command_name = command_name
         self.url = url
+        self.guild = guild
+        self.guild_id = guild.id
+        self.config = Config(guild)
         if title:
             self.title = title
         else:
@@ -19,13 +23,13 @@ class SoundFile:
                         'outtmpl': f'~/coding/sounds/{self.title}.%(ext)s',
                         'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
          
-        
         p = Path('~')
         self.path = p / 'coding' / 'sounds'
         self.file_path = f'~/coding/sounds/{self.title}'
-
-        self.db = TinyDB(f'{os.path.expanduser(self.path)}/sounds.json')
         
+        self.db = TinyDB(f'{os.path.expanduser(self.path)}/sounds_{self.guild_id}.json')
+        self.config.sounds = f"{os.path.expanduser(self.path)}/sounds_{self.guild_id}.json"
+        self.config.update_config() 
 
     def download_sound(self):
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
@@ -47,26 +51,14 @@ class SoundFile:
         self.add_command()
 
     def add_command(self):
+        config = Config(self.guild)
         command_info = {'file': self.file_path,
                         'command_name': str(self.command_name)}
 
         self.db.insert(command_info)
+        config.update_config()
 
     def view_commands(self):
         for command in self.db:
             print(command)
             
-if __name__ == '__main__':
-    command_name = input("Enter a command name: ")
-    url = input("Please enter a url: ")
-    title = input("Please enter a title, or N: ")
-
-    if title.lower() != "n":
-        sound = SoundFile(command_name, url, title)
-    else:
-        sound = SoundFile(command_name, url)
-
-    sound.download_sound()
-
-    sound.view_commands()
-

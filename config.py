@@ -23,6 +23,7 @@ class Config:
         self.role_message_id = config_data.get('role_message_id', None)
         self.role_message_channel_id = config_data.get('role_message_channel_id', None)
         self.sounds = config_data.get('sounds', None)
+        self.commands = config_data.get('commands', None)
         
         if len(config_data) == 0:
             self.update_config()
@@ -37,7 +38,8 @@ class Config:
                 "roles": self.roles,
                 "role_message_id": self.role_message_id,
                 "role_message_channel_id": self.role_message_channel_id,
-                "sounds": self.sounds
+                "sounds": self.sounds,
+                "commands": self.commands
                 }
         return json.dumps(property_dict, indent=2)
 

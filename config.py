@@ -15,6 +15,8 @@ class Config:
         self.guild_id = config_data.get('guild_id', guild.id)
         self.owner_id = config_data.get('owner_id', guild.owner.id)
         self.streamer_id = config_data.get('streamer_id', None)
+        self.streamer_announcement_channel_id = config_data.get('streamer_announcement_channel_id', None)
+        self.streamers = config_data.get('streamers', None)
         roles = {}
         for role in guild.roles:
             roles[role.id] = {'name': role.name,
@@ -35,6 +37,8 @@ class Config:
                 "guild_id": self.guild_id,
                 "owner_id": self.owner_id,
                 "streamer_id": self.streamer_id,
+                "streamer_announcement_channel_id": self.streamer_announcement_channel_id,
+                "streamers": self.streamers,
                 "roles": self.roles,
                 "role_message_id": self.role_message_id,
                 "role_message_channel_id": self.role_message_channel_id,
@@ -63,6 +67,3 @@ class Config:
                 return json.load(config_file)
         except FileNotFoundError:
             self.update_config()
-        
-
-

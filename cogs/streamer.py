@@ -22,10 +22,12 @@ class Streamer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
+        #self.alert_task = self.loop.create_task(self.check_for_live())
    
-    @commands.Cog.listener()
-    async def streamer_goes_live(self):
-        pass
+   # async def check_for_live(self):
+   #     await self.wait_until_ready()
+   #     while not self.is_closed():
+   #         await asyncio.sleep(180)
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="addstreamer")
@@ -34,7 +36,7 @@ class Streamer(commands.Cog):
         # https://www.twitch.tv/psuedoo
         streamer_name = streamer_url[streamer_url.rfind("/") + 1:] 
 
-        config.streamers[streamer_name.strip()] = {'url': streamer_url}
+        config.streamers[streamer_name.strip()] = {'url': streamer_url, 'live': False}
         config.update_config()
 
         await ctx.send(f"{streamer_name} has been added!")

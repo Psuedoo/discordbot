@@ -12,7 +12,11 @@ token = os.environ["TOKEN"]
 intents = discord.Intents.default()
 intents.members = True
 
-initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound", "cogs.command"]
+initial_extensions = ["cogs.basic",
+        "cogs.admin",
+        "cogs.sound",
+        "cogs.command",
+        "cogs.streamer"]
 
 
 async def handle_echo(reader, writer):

@@ -149,7 +149,7 @@ class Basic(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="setchannel")
     async def setchannel(self, ctx):
-
+        
         guild_id = ctx.message.channel.guild.id
         
         current_config = instantiate_configs(ctx.bot.guilds, guild_id)
@@ -174,6 +174,7 @@ class Basic(commands.Cog):
 
         await ctx.send("React with the following emojis for the corresponding role:")
         message = await ctx.send(embed=role_embed)
+        await ctx.message.delete()
 
         current_config.role_message_id = int(message.id)
 
@@ -186,9 +187,10 @@ class Basic(commands.Cog):
     @commands.command(name="createrole")
     async def createrole(self, ctx, role_name):
         role = await ctx.message.channel.guild.create_role(name=role_name)
-    
-        await ctx.send(f"{role_name} has been successfully created.")
-
+        
+        await ctx.message.delete()
+        message = await ctx.send(f"{role_name} has been successfully created.")
+        await message.delete(delay=10)
 
 
     @commands.check(checks.is_bot_enabled)
@@ -210,8 +212,10 @@ class Basic(commands.Cog):
             for role in current_config.roles.values():
                 if role.get('name') == role_name and emoji:
                     role['emoji'] = emoji
-                    await ctx.send(f"Linked {role.get('name')} with {emoji}")
-                    
+                    await ctx.message.delete()
+                    response = await ctx.send(f"Linked {role.get('name')} with {emoji}")
+                    await response.delete(delay=10)
+
                     channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
                     message = await channel.fetch_message(current_config.role_message_id)
                     
@@ -240,8 +244,9 @@ class Basic(commands.Cog):
             if emoji == role.get('emoji'):
                 role['emoji'] = None
 
-
-        await ctx.send(f"Unlinked {unlinked_role.get('emoji')} from {unlinked_role.get('name')}.")
+        await ctx.message.delete()
+        response = await ctx.send(f"Unlinked {unlinked_role.get('emoji')} from {unlinked_role.get('name')}.")
+        await response.delete(delay=10)
 
         if not unlinked_role:
             await ctx.send(f"Couldn't find a role linked with {emoji}.")

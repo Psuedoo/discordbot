@@ -42,12 +42,31 @@ class Streamer(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="removestreamer")
     async def remove_streamer(self, ctx, streamer_name):
-        pass
+        config = Config(ctx.guild)
+        if config.streamers[streamer_name.lower()]:
+            config.streamers.pop(streamer_name.lower())
+            config.update_config()
+            await ctx.send(f"{streamer_name.lower()} has been removed!")
+        else:
+            await ctx.send(f"No streamer with username {streamer_name} found.")
+
 
     @commands.command(name="viewstreamers")
     async def view_streamers(self, ctx):
         config = Config(ctx.guild)
         await ctx.send([streamer for streamer in config.streamers.keys()])
+
+    @commands.command(name="viewstreamer")
+    async def view_streamer(self, ctx, streamer_name):
+        config = Config(ctx.guild)
+        
+        streamers = {"name": {"url"}, "name2": {"url"},}
+        if config.streamers[streamer_name.lower()]:
+            streamer_url = config.streamers[streamer_name.lower()].get('url')
+
+            await ctx.send(f"{streamer_name}: <{streamer_url}>") 
+        else:
+            await ctx.send("Streamer doesn't exist.")
 
 def setup(bot):
     bot.add_cog(Streamer(bot))

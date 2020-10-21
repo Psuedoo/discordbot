@@ -230,8 +230,16 @@ class Basic(commands.Cog):
     @commands.command(name="unlinkemoji")
     async def unlinkemoji(self, ctx, emoji, role=None):
         current_config = instantiate_configs(self.bot.guilds, ctx.message.channel.guild.id)
-
+        
         unlinked_role = await self.role_embed_remove(current_config, emoji=emoji)
+        channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
+        message = await channel.fetch_message(current_config.role_message_id)
+
+        await message.clear_reaction(emoji)
+        for role in current_config.roles.values():
+            if emoji == role.get('emoji'):
+                role['emoji'] = None
+
 
         await ctx.send(f"Unlinked {unlinked_role.get('emoji')} from {unlinked_role.get('name')}.")
 

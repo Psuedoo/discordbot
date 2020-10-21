@@ -2,6 +2,7 @@ import os
 import discord
 import asyncio
 from config import Config
+from command_class import CustomCommand
 from cogs.utils import checks
 from pathlib import Path
 from discord.ext import commands
@@ -11,7 +12,7 @@ token = os.environ["TOKEN"]
 intents = discord.Intents.default()
 intents.members = True
 
-initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound"]
+initial_extensions = ["cogs.basic", "cogs.admin", "cogs.sound", "cogs.command"]
 
 
 async def handle_echo(reader, writer):
@@ -69,6 +70,18 @@ async def on_ready():
         print(config.guild_id)
 
     await socket_main()
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    else:
+        commands = CustomCommand(message.guild)
+        guild_prefix = prefix(bot, message)
+        if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
+            await message.channel.send(commands.handle_command(message))
+        else:
+            await bot.process_commands(message)
 
 @bot.event
 async def on_member_join(member):

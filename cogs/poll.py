@@ -106,6 +106,17 @@ class PollCog(commands.Cog):
         else:
             await self.create_poll(poll_name)
 
+    @commands.command(name="pollremove")
+    async def remove_poll_option(self, ctx, poll_name, emoji):
+        if self.poll:
+            try:
+                self.poll.options.pop(emoji)
+                await self.update(self.poll)
+            except:
+                print("Error removing poll option")
+        else:
+            print("No current poll")
+
     @commands.command(name="pollend")
     async def end_poll(self, ctx, poll_name=None):
         if self.poll and os.path.exists(self.poll.path):

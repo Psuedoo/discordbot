@@ -12,16 +12,16 @@ from discord.utils import get
 
 
 class Poll:
-    def __init__(self, name, author=None, message=None):
+    def __init__(self, name, message=None):
         self.path = Path('.') / 'polls' / f'{name}_poll.json'
         if self.path.is_file():
             poll_data = self.get_poll_data()
         else:
             poll_data = {}
-
+        
         self.name = poll_data.get('name', name)
-        self.author_id = poll_data.get('author_id', author.id)
-        self.author_name = poll_data.get('author_name', author.display_name)
+        self.author_id = poll_data.get('author_id', message.author.id)
+        self.author_name = poll_data.get('author_name', message.author.display_name)
         self.message_id = poll_data.get('message_id', message.id)
         self.message_channel_id = poll_data.get('message_channel_id', message.channel.id)
         self.duration = poll_data.get('duration', 180)
@@ -62,20 +62,27 @@ class PollCog(commands.Cog):
         self.poll_dir = f"{os.path.expanduser('~/coding/discordbot/polls')}"
 
 
-    def add_poll(self):
-        with open(self.poll_file, "a") as poll_file:
-            json.dump(self.poll_data, poll_file, indent=2)
+    async def update(self, poll): 
+        poll.update_poll()
+        await self.update_poll_message(poll)
 
-    def update(self):
-        with open(self.poll_file, "w") as poll_file:
-            json.dump(self.poll_data, poll_file, indent=2)
-        self.poll_push()
 
-    def poll_push(self):
-        with open(self.poll_file) as poll_file:
-            poll_data = json.load(poll_file)
-        print(poll_data)
-    
+    async def update_poll_message(self, poll):
+        channel = await self.bot.fetch_channel(poll.message_channel_id) 
+        message = await channel.fetch_message(poll.message_id)
+        try:
+            embed = message.embeds[0]
+        except IndexError:
+            embed = discord.Embed()
+
+        embed.clear_fields()
+        for option in poll.options:
+            poll_emoji_dict = poll.options[option]
+            embed.add_field(name=option, value=poll_emoji_dict.get('emoji'))
+        await message.edit(embed=embed)
+
+
+
     @commands.Cog.listener(name="on_reaction_add")
     async def on_vote(self, reaction, user):
         # Check if reactions on poll message
@@ -85,13 +92,15 @@ class PollCog(commands.Cog):
 
     @commands.command(name="pollcreate")
     async def create_poll(self, ctx, poll_name):
-        message = await ctx.send(f"Poll: {poll_name}")
+        poll_message = await ctx.send(f"Poll: {poll_name}")
 
-        poll = Poll(poll_name, ctx.message.author, message)
+        self.poll = Poll(poll_name, poll_message)
 
     @commands.command(name="polladd")
-    async def add_poll_option(self, ctx, option, emoji):
-        pass        
+    async def add_poll_option(self, ctx, poll_name, option, emoji):
+        self.poll.options[option] = {'emoji': emoji}
+        await self.update(self.poll)
+                
 
     @commands.command(name="pollend")
     async def end_poll(self, ctx, poll_name=None):

@@ -81,9 +81,7 @@ class PollCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        print(reaction) 
-        if self.poll.message_id == reaction.message.id:
-            print("first if statement")
+        if self.poll.message_id == reaction.message.id and not user.bot:
             for option in self.poll.options:
                 if reaction.emoji == option:
                     self.poll.options[option].get('voters').append(user.display_name)
@@ -103,6 +101,7 @@ class PollCog(commands.Cog):
     async def add_poll_option(self, ctx, poll_name, option_name, emoji):
         if self.poll:
             self.poll.options[emoji] = {'name': option_name, 'voters': []}
+            await self.poll_message.add_reaction(emoji)
             await self.update(self.poll)
         else:
             await self.create_poll(poll_name)
@@ -110,7 +109,7 @@ class PollCog(commands.Cog):
     @commands.command(name="pollend")
     async def end_poll(self, ctx, poll_name=None):
         if self.poll and os.path.exists(self.poll.path):
-            voters = [{option: self.poll.options[option].get('voters')} for option in self.poll.options]
+            voters = [{option: len(self.poll.options[option].get('voters'))} for option in self.poll.options]
             await ctx.send(voters)
             os.remove(self.poll.path)
             self.poll = None

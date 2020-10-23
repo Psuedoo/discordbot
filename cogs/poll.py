@@ -110,6 +110,8 @@ class PollCog(commands.Cog):
     @commands.command(name="pollend")
     async def end_poll(self, ctx, poll_name=None):
         if self.poll and os.path.exists(self.poll.path):
+            voters = [{option: self.poll.options[option].get('voters')} for option in self.poll.options]
+            await ctx.send(voters)
             os.remove(self.poll.path)
             self.poll = None
             print("Poll file removed.")

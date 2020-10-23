@@ -25,7 +25,7 @@ class Poll:
         self.message_id = poll_data.get('message_id', message.id)
         self.message_channel_id = poll_data.get('message_channel_id', message.channel.id)
         self.duration = poll_data.get('duration', 180)
-        self.options = poll_data.get('options', {}) # Dict with option names: {emoji, voter list}
+        self.options = poll_data.get('options', {})
 
         if len(poll_data) == 0:
             self.update_poll()
@@ -38,7 +38,7 @@ class Poll:
                 "message_id": self.message_id,
                 "message_channel_id": self.message_channel_id,
                 "duration": self.duration,
-                "options": self.options # Dict with option names: {emoji, voter list}
+                "options": self.options
         }
         return json.dumps(poll_data, indent=2)
 
@@ -59,53 +59,64 @@ class PollCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
-        self.poll_dir = f"{os.path.expanduser('~/coding/discordbot/polls')}"
 
 
-    async def update(self, poll): 
+    async def update(self, poll):
         poll.update_poll()
         await self.update_poll_message(poll)
 
 
     async def update_poll_message(self, poll):
-        channel = await self.bot.fetch_channel(poll.message_channel_id) 
-        message = await channel.fetch_message(poll.message_id)
-        try:
-            embed = message.embeds[0]
-        except IndexError:
-            embed = discord.Embed()
+        if self.poll_message:
+            try:
+                embed = self.poll_message.embeds[0]
+            except IndexError:
+                embed = discord.Embed()
 
-        embed.clear_fields()
-        for option in poll.options:
-            poll_emoji_dict = poll.options[option]
-            embed.add_field(name=option, value=poll_emoji_dict.get('emoji'))
-        await message.edit(embed=embed)
+            embed.clear_fields()
+            for option in poll.options:
+                embed.add_field(name=poll.options[option].get('name'), value=option)
+            await self.poll_message.edit(embed=embed)
 
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        print(reaction) 
+        if self.poll.message_id == reaction.message.id:
+            print("first if statement")
+            for option in self.poll.options:
+                if reaction.emoji == option:
+                    self.poll.options[option].get('voters').append(user.display_name)
+                    await self.update(self.poll)
 
-    @commands.Cog.listener(name="on_reaction_add")
-    async def on_vote(self, reaction, user):
-        # Check if reactions on poll message
-        # Check if reaction is a valid option
-        # Add user to list of voters
-        pass
+        else:
+            pass  # Reaction wasn't on the poll
+
 
     @commands.command(name="pollcreate")
     async def create_poll(self, ctx, poll_name):
-        poll_message = await ctx.send(f"Poll: {poll_name}")
+        self.poll_message = await ctx.send(f"Poll: {poll_name}")
 
-        self.poll = Poll(poll_name, poll_message)
+        self.poll = Poll(poll_name, self.poll_message)
 
     @commands.command(name="polladd")
-    async def add_poll_option(self, ctx, poll_name, option, emoji):
-        self.poll.options[option] = {'emoji': emoji}
-        await self.update(self.poll)
-                
+    async def add_poll_option(self, ctx, poll_name, option_name, emoji):
+        if self.poll:
+            self.poll.options[emoji] = {'name': option_name, 'voters': []}
+            await self.update(self.poll)
+        else:
+            await self.create_poll(poll_name)
 
     @commands.command(name="pollend")
     async def end_poll(self, ctx, poll_name=None):
-        # Ends specified poll, if a jerk and doesn't say which poll, try to figure it out
-        pass
+        if self.poll and os.path.exists(self.poll.path):
+            os.remove(self.poll.path)
+            self.poll = None
+            print("Poll file removed.")
+        else:
+            print("Something went wrong.")
+
+
 
 def setup(bot):
     bot.add_cog(PollCog(bot))

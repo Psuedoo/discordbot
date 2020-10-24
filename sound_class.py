@@ -12,41 +12,35 @@ class SoundFile:
         self.guild = guild
         self.guild_id = guild.id
         self.config = Config(guild)
+        self.path = Path.cwd() / 'sounds'
+        if not self.path.is_dir():
+            self.path.mkdir()
+
         if title:
             self.title = title
         else:
             self.title = '%(title)s'
 
+        self.file_path = self.path / self.title
+        self.db_path = self.path / f'sounds_{self.guild_id}.json'
+
         self.ydl_opts = {'format': 'bestaudio',
                          'noplaylist': True,
-                         'outtmpl': f'~/coding/sounds/{self.title}.%(ext)s',
+                         'outtmpl': f'{self.file_path}.%(ext)s',
                          'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
 
-        self.path = Path.cwd() / 'sounds'
-        # self.file_path = f'~/coding/sounds/{self.title}'
-        self.file_path = f'{self.file_path}/{self.title}'
-        self.db.path = f'{self.path}/sounds_{self.guild_id}.json'
-
-        self.db = TinyDB(self.db.path)
-        self.config.sounds = self.db.path
+        self.db = TinyDB(self.db_path)
+        self.config.sounds = self.db_path
         self.config.update_config()
 
     def download_sound(self):
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             ydl.download([self.url])
 
-        if os.path.isfile(os.path.expanduser(self.file_path) + '.m4a'):
-            extension = '.m4a'
-        elif os.path.isfile(os.path.expanduser(self.file_path) + '.opus'):
-            extension = '.opus'
-        elif os.path.isfile(os.path.expanduser(self.file_path) + '.ogg'):
-            extension = '.ogg'
-        elif os.path.isfile(os.path.expanduser(self.file_path) + '.mp3'):
-            extension = '.mp3'
-        else:
-            extension = '.savingasdiffext'
-
-        self.file_path = self.file_path + extension
+        for file in self.path.iterdir():
+            breakpoint()
+            if file.stem == self.file_path.stem:
+                self.file_path.rename(file(file.suffix))
 
         self.add_command()
 

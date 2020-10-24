@@ -2,7 +2,7 @@ import os
 import re
 import discord
 import asyncio
-from tinydb import TinyDB, Query 
+from tinydb import TinyDB, Query
 from config import Config
 from sound_class import SoundFile
 from cogs.utils import checks
@@ -20,6 +20,7 @@ def instantiate_configs(guilds, specific_guild_id=None):
     else:
         return [Config(guild) for guild in guilds]
 
+
 def instantiate_dbs(guilds, specific_guild_id=None):
     if specific_guild_id:
         for guild in guilds:
@@ -28,6 +29,7 @@ def instantiate_dbs(guilds, specific_guild_id=None):
 
     else:
         return [TinyDB(Config(guild).sounds) for guild in guilds]
+
 
 class Sound(commands.Cog):
     def __init__(self, bot):
@@ -45,7 +47,7 @@ class Sound(commands.Cog):
             loop.call_soon_threadsafe(future.set_result, args)
 
         self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
-                    after=after)
+                               after=after)
         callback_args = await future
         return callback_args
 
@@ -72,10 +74,10 @@ class Sound(commands.Cog):
         db = TinyDB(config.sounds)
 
         return db.search(Command.command_name == sound)[0]['file']
-        
-       # for db in dbs:
-       #     if sound_file:
-       #         return sound_file
+
+    # for db in dbs:
+    #     if sound_file:
+    #         return sound_file
 
     @commands.command(name="join")
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
@@ -120,7 +122,7 @@ class Sound(commands.Cog):
         Command = Query()
         db = instantiate_dbs(self.guilds, ctx.guild)
         table = db.table('_default')
-        
+
         try:
             sound_dir = [sound.get('file') for sound in db if sound.get('command_name') == name][0]
         except IndexError as e:
@@ -134,7 +136,7 @@ class Sound(commands.Cog):
             await ctx.send(f"Failed to delete {name} sound.")
         else:
             await ctx.send(f"Successfully deleted {name} sound!")
-        
+
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds")
     async def viewsounds(self, ctx):
@@ -143,7 +145,6 @@ class Sound(commands.Cog):
         for sound in db:
             sounds.append(sound.get('command_name'))
         await ctx.send(sounds)
-
 
 
 def setup(bot):

@@ -5,6 +5,7 @@ from pathlib import Path
 class Config:
     def __init__(self, guild):
         self.path = Path('.') / 'configs' / f'{guild.id}_config.json'
+
         if self.path.is_file():
             config_data = self.get_config()
         else:
@@ -43,7 +44,7 @@ class Config:
                 "role_message_id": self.role_message_id,
                 "role_message_channel_id": self.role_message_channel_id,
                 "sounds": self.sounds,
-                "commands": self.commands
+                "commands": self.commands,
                 }
         return json.dumps(property_dict, indent=2)
 
@@ -51,7 +52,7 @@ class Config:
     def create_config(self):
         if self.config_file_path.is_file():
             print(f"{self.config_file_path} already exists.")
-            return None
+            return
 
         else:
             print(f"Created {self.config_file_path}")

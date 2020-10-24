@@ -4,7 +4,8 @@ from pathlib import Path
 
 class Config:
     def __init__(self, guild):
-        self.path = Path('.') / 'configs' / f'{guild.id}_config.json'
+        self.path = Path.cwd() / 'configs' / f'{guild.id}_config.json'
+        #self.path = Path('.') / 'configs' / f'{guild.id}_config.json'
 
         if self.path.is_file():
             config_data = self.get_config()

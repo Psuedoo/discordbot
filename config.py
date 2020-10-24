@@ -17,7 +17,7 @@ class Config:
         self.owner_id = config_data.get('owner_id', guild.owner.id)
         self.streamer_id = config_data.get('streamer_id', None)
         self.streamer_announcement_channel_id = config_data.get('streamer_announcement_channel_id', None)
-        self.streamers = config_data.get('streamers', None)
+        self.streamers = config_data.get('streamers', {})
         roles = {}
         for role in guild.roles:
             roles[role.id] = {'name': role.name,

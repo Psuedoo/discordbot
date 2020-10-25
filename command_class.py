@@ -9,10 +9,16 @@ class CustomCommand:
     def __init__(self, guild):
         self.guild_id = guild.id
         self.config = Config(guild)
-        p = Path('~')
-        self.path = p / 'coding' / 'commands'
-        self.db = TinyDB(f'{os.path.expanduser(self.path)}/commands_{self.guild_id}.json')
-        self.config.commands = f"{os.path.expanduser(self.path)}/commands_{self.guild_id}.json"
+        self.path = Path.cwd() / 'commands'
+        if not self.path.is_dir():
+            self.path.mkdir()
+        self.db_path = self.path / f'commands_{self.guild_id}.json'
+        self.db = TinyDB(self.db_path)
+        self.config.commands = self.db_path
+        # p = Path('~')
+        # self.path = p / 'coding' / 'commands'
+        # self.db = TinyDB(f'{os.path.expanduser(self.path)}/commands_{self.guild_id}.json')
+        # self.config.commands = f"{os.path.expanduser(self.path)}/commands_{self.guild_id}.json"
         self.config.update_config()
 
     def handle_command(self, message):
@@ -33,7 +39,7 @@ class CustomCommand:
     def delete_custom_command(self, command_name):
         Command = Query()
         table = self.db.table('_default')
-        
+
         try:
             command = [command.get('file') for command in self.db if command.get('command_name') == command_name][0]
         except IndexError as e:
@@ -49,4 +55,3 @@ class CustomCommand:
     def view_custom_commands(self):
         commands = [command.get('command_name') for command in self.db.all()]
         return commands
-           

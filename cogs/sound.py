@@ -2,7 +2,7 @@ import os
 import re
 import discord
 import asyncio
-from tinydb import TinyDB, Query 
+from tinydb import TinyDB, Query
 from config import Config
 from sound_class import SoundFile
 from cogs.utils import checks
@@ -11,23 +11,13 @@ from discord.abc import Messageable
 from discord.utils import get
 
 
-def instantiate_configs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return Config(guild)
+def instantiate_configs(guilds):
+    return [Config(guild) for guild in guilds if guild]
 
-    else:
-        return [Config(guild) for guild in guilds]
 
-def instantiate_dbs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return TinyDB(Config(guild).sounds)
+def instantiate_dbs(guilds):
+    return [TinyDB(Config(guild).sounds) for guild in guilds if guild]
 
-    else:
-        return [TinyDB(Config(guild).sounds) for guild in guilds]
 
 class Sound(commands.Cog):
     def __init__(self, bot):
@@ -45,7 +35,7 @@ class Sound(commands.Cog):
             loop.call_soon_threadsafe(future.set_result, args)
 
         self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
-                    after=after)
+                               after=after)
         callback_args = await future
         return callback_args
 
@@ -64,6 +54,8 @@ class Sound(commands.Cog):
                 task = asyncio.create_task(self.handle_queue())
                 await self.queue.join()
                 await asyncio.gather(task)
+        else:
+            print("No sound")
 
     def get_sound_file(self, sound, discord_id=None):
         Command = Query()
@@ -72,10 +64,6 @@ class Sound(commands.Cog):
         db = TinyDB(config.sounds)
 
         return db.search(Command.command_name == sound)[0]['file']
-        
-       # for db in dbs:
-       #     if sound_file:
-       #         return sound_file
 
     @commands.command(name="join")
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
@@ -107,8 +95,11 @@ class Sound(commands.Cog):
     @commands.command(name="soundadd")
     async def soundadd(self, ctx, name, url):
         sound = SoundFile(ctx.guild, name, url, title=name)
-        sound.download_sound()
-        await ctx.send(f"Added {name} to sounds!")
+        try:
+            sound.add_command()
+            await ctx.send(f"Added {name} to sounds!")
+        except:
+            await ctx.send(f"Couldn't add {name} to sounds.")
 
     @commands.command(name="play")
     async def play(self, ctx, sound):
@@ -118,9 +109,9 @@ class Sound(commands.Cog):
     @commands.command(name="sounddelete")
     async def sound_delete(self, ctx, name):
         Command = Query()
-        db = instantiate_dbs(self.guilds, ctx.guild)
+        db = Config(ctx.guild)
         table = db.table('_default')
-        
+
         try:
             sound_dir = [sound.get('file') for sound in db if sound.get('command_name') == name][0]
         except IndexError as e:
@@ -134,16 +125,14 @@ class Sound(commands.Cog):
             await ctx.send(f"Failed to delete {name} sound.")
         else:
             await ctx.send(f"Successfully deleted {name} sound!")
-        
+
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds")
     async def viewsounds(self, ctx):
-        db = instantiate_dbs(self.guilds, ctx.guild)
+        config = Config(ctx.guild)
+        db = TinyDB(config.sounds)
         sounds = [sound.get('command_name') for sound in db]
-        for sound in db:
-            sounds.append(sound.get('command_name'))
         await ctx.send(sounds)
-
 
 
 def setup(bot):

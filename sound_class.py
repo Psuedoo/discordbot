@@ -12,53 +12,48 @@ class SoundFile:
         self.guild = guild
         self.guild_id = guild.id
         self.config = Config(guild)
+        self.path = Path.cwd() / 'sounds'
+        if not self.path.is_dir():
+            self.path.mkdir()
+
         if title:
             self.title = title
         else:
             self.title = '%(title)s'
 
+        self.file_path = self.path / self.title
+        self.db_path = self.path / f'sounds_{self.guild_id}.json'
 
         self.ydl_opts = {'format': 'bestaudio',
-                        'noplaylist': True,
-                        'outtmpl': f'~/coding/sounds/{self.title}.%(ext)s',
-                        'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
-         
-        p = Path('~')
-        self.path = p / 'coding' / 'sounds'
-        self.file_path = f'~/coding/sounds/{self.title}'
-        
-        self.db = TinyDB(f'{os.path.expanduser(self.path)}/sounds_{self.guild_id}.json')
-        self.config.sounds = f"{os.path.expanduser(self.path)}/sounds_{self.guild_id}.json"
-        self.config.update_config() 
+                         'noplaylist': True,
+                         'outtmpl': f'{self.file_path}.%(ext)s',
+                         'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
+
+        self.db = TinyDB(self.db_path)
+        self.config.sounds = self.db_path
+        self.config.update_config()
 
     def download_sound(self):
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             ydl.download([self.url])
 
-        if os.path.isfile(os.path.expanduser(self.file_path)+'.m4a'):
-            extension = '.m4a'
-        elif os.path.isfile(os.path.expanduser(self.file_path)+'.opus'):
-            extension = '.opus'
-        elif os.path.isfile(os.path.expanduser(self.file_path)+'.ogg'):
-            extension = '.ogg'
-        elif os.path.isfile(os.path.expanduser(self.file_path)+'.mp3'):
-            extension = '.mp3'
-        else:
-            extension = '.savingasdiffext'
- 
-        self.file_path = self.file_path+extension
-
-        self.add_command()
+        for file in self.path.iterdir():
+            print(f"{file=}")
+            if file.stem == self.file_path.stem:
+                self.file_path = file
+                print(f"{self.file_path}")
 
     def add_command(self):
-        config = Config(self.guild)
-        command_info = {'file': self.file_path,
-                        'command_name': str(self.command_name)}
+        if not self.file_path.is_file():
+            self.download_sound()
 
-        self.db.insert(command_info)
-        config.update_config()
+        if self.command_name in [sound.get('command_name') for sound in self.db]:
+            return
+        else:
 
-    def view_commands(self):
-        for command in self.db:
-            print(command)
-            
+            config = Config(self.guild)
+            command_info = {'file': str(self.file_path),
+                            'command_name': str(self.command_name)}
+
+            self.db.insert(command_info)
+            config.update_config()

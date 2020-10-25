@@ -4,7 +4,6 @@ import asyncio
 from config import Config
 from command_class import CustomCommand
 from cogs.utils import checks
-from pathlib import Path
 from discord.ext import commands
 
 token = os.environ["TOKEN"]
@@ -13,10 +12,10 @@ intents = discord.Intents.default()
 intents.members = True
 
 initial_extensions = ["cogs.basic",
-        "cogs.admin",
-        "cogs.sound",
-        "cogs.command",
-        "cogs.streamer"]
+                      "cogs.admin",
+                      "cogs.sound",
+                      "cogs.command",
+                      "cogs.streamer"]
 
 
 async def handle_echo(reader, writer):
@@ -34,7 +33,7 @@ async def handle_echo(reader, writer):
 
 
 async def socket_main():
-    server = await asyncio.start_server(handle_echo, 'localhost', 3000)
+    server = await asyncio.start_server(handle_echo, 'localhost', 4000)
 
     async with server:
         await server.serve_forever()
@@ -75,6 +74,7 @@ async def on_ready():
 
     await socket_main()
 
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -87,6 +87,7 @@ async def on_message(message):
         else:
             await bot.process_commands(message)
 
+
 @bot.event
 async def on_member_join(member):
     guild = member.guild
@@ -94,9 +95,11 @@ async def on_member_join(member):
         to_send = f"Welcome {member.mention} to {guild.name}!"
         await guild.system_channel.send(to_send)
 
+
 @bot.command(name="test")
 async def test(ctx):
     await ctx.send("The test has passed!")
+
 
 @commands.check(checks.is_bot_enabled)
 @bot.command(name="setprefix")
@@ -113,16 +116,16 @@ async def vctest(message, ctx=None):
     print(message)
     tags = message.split(";")
     print(tags)
-    sound_name = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("sound_name=")][0]
-    channel_name = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("channel_name=")][0]
-    discord_id = [tag[tag.find("=")+1:] for tag in tags if tag.startswith("discord_id=")][0]
+    sound_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("sound_name=")][0]
+    channel_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("channel_name=")][0]
+    discord_id = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("discord_id=")][0]
     sound = bot.get_cog('Sound')
     await sound.join(None, channel_name, discord_id)
     await sound.sound_handler(sound_name, discord_id)
 
+
 if __name__ == '__main__':
     for extension in initial_extensions:
         bot.load_extension(extension)
-
 
 bot.run(token)

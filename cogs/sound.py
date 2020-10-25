@@ -11,24 +11,12 @@ from discord.abc import Messageable
 from discord.utils import get
 
 
-def instantiate_configs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return Config(guild)
-
-    else:
-        return [Config(guild) for guild in guilds]
+def instantiate_configs(guilds):
+    return [Config(guild) for guild in guilds if guild]
 
 
-def instantiate_dbs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return TinyDB(Config(guild).sounds)
-
-    else:
-        return [TinyDB(Config(guild).sounds) for guild in guilds]
+def instantiate_dbs(guilds):
+    return [TinyDB(Config(guild).sounds) for guild in guilds if guild]
 
 
 class Sound(commands.Cog):

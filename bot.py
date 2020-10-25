@@ -33,7 +33,7 @@ async def handle_echo(reader, writer):
 
 
 async def socket_main():
-    server = await asyncio.start_server(handle_echo, 'localhost', 3000)
+    server = await asyncio.start_server(handle_echo, 'localhost', 4000)
 
     async with server:
         await server.serve_forever()

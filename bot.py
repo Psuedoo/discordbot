@@ -4,7 +4,6 @@ import asyncio
 from config import Config
 from command_class import CustomCommand
 from cogs.utils import checks
-from pathlib import Path
 from discord.ext import commands
 
 token = os.environ["TOKEN"]
@@ -78,16 +77,15 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    # if message.author.bot:
-    #     return
-    # else:
-    #     commands = CustomCommand(message.guild)
-    #     guild_prefix = prefix(bot, message)
-    #     if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
-    #         await message.channel.send(commands.handle_command(message))
-    #     else:
-    #         await bot.process_commands(message)
-    await bot.process_commands(message)
+    if message.author.bot:
+        return
+    else:
+        commands = CustomCommand(message.guild)
+        guild_prefix = prefix(bot, message)
+        if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
+            await message.channel.send(commands.handle_command(message))
+        else:
+            await bot.process_commands(message)
 
 
 @bot.event

@@ -66,6 +66,8 @@ class Sound(commands.Cog):
                 task = asyncio.create_task(self.handle_queue())
                 await self.queue.join()
                 await asyncio.gather(task)
+        else:
+            print("No sound")
 
     def get_sound_file(self, sound, discord_id=None):
         Command = Query()
@@ -74,10 +76,6 @@ class Sound(commands.Cog):
         db = TinyDB(config.sounds)
 
         return db.search(Command.command_name == sound)[0]['file']
-
-    # for db in dbs:
-    #     if sound_file:
-    #         return sound_file
 
     @commands.command(name="join")
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
@@ -109,8 +107,11 @@ class Sound(commands.Cog):
     @commands.command(name="soundadd")
     async def soundadd(self, ctx, name, url):
         sound = SoundFile(ctx.guild, name, url, title=name)
-        sound.download_sound()
-        await ctx.send(f"Added {name} to sounds!")
+        try:
+            sound.add_command()
+            await ctx.send(f"Added {name} to sounds!")
+        except:
+            await ctx.send(f"Couldn't add {name} to sounds.")
 
     @commands.command(name="play")
     async def play(self, ctx, sound):
@@ -120,7 +121,7 @@ class Sound(commands.Cog):
     @commands.command(name="sounddelete")
     async def sound_delete(self, ctx, name):
         Command = Query()
-        db = instantiate_dbs(self.guilds, ctx.guild)
+        db = Config(ctx.guild)
         table = db.table('_default')
 
         try:
@@ -140,10 +141,9 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds")
     async def viewsounds(self, ctx):
-        db = instantiate_dbs(self.guilds, ctx.guild)
+        config = Config(ctx.guild)
+        db = TinyDB(config.sounds)
         sounds = [sound.get('command_name') for sound in db]
-        for sound in db:
-            sounds.append(sound.get('command_name'))
         await ctx.send(sounds)
 
 

@@ -38,20 +38,22 @@ class SoundFile:
             ydl.download([self.url])
 
         for file in self.path.iterdir():
-            breakpoint()
+            print(f"{file=}")
             if file.stem == self.file_path.stem:
-                self.file_path.rename(file(file.suffix))
-
-        self.add_command()
+                self.file_path = file
+                print(f"{self.file_path}")
 
     def add_command(self):
-        config = Config(self.guild)
-        command_info = {'file': self.file_path,
-                        'command_name': str(self.command_name)}
+        if not self.file_path.is_file():
+            self.download_sound()
 
-        self.db.insert(command_info)
-        config.update_config()
+        if self.command_name in [sound.get('command_name') for sound in self.db]:
+            return
+        else:
 
-    def view_commands(self):
-        for command in self.db:
-            print(command)
+            config = Config(self.guild)
+            command_info = {'file': str(self.file_path),
+                            'command_name': str(self.command_name)}
+
+            self.db.insert(command_info)
+            config.update_config()

@@ -12,9 +12,9 @@ class CustomCommand:
         self.path = Path.cwd() / 'commands'
         if not self.path.is_dir():
             self.path.mkdir()
-        self.db.path = self.path / f'commands_{self.guild_id}.json'
-        self.db = TinyDB(self.db.path)
-        self.config.commands = self.db.path
+        self.db_path = self.path / f'commands_{self.guild_id}.json'
+        self.db = TinyDB(self.db_path)
+        self.config.commands = self.db_path
         # p = Path('~')
         # self.path = p / 'coding' / 'commands'
         # self.db = TinyDB(f'{os.path.expanduser(self.path)}/commands_{self.guild_id}.json')

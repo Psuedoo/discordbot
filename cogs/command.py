@@ -6,8 +6,6 @@ from config import Config
 from command_class import CustomCommand
 from cogs.utils import checks
 from discord.ext import commands
-from discord.abc import Messageable
-from discord.utils import get
 
 
 def instantiate_configs(guilds, specific_guild_id=None):

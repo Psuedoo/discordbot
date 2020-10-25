@@ -72,6 +72,9 @@ async def on_ready():
     for config in configs:
         print(config.guild_id)
 
+    # TODO : Once converted bot into class, make presence setting command
+    game = discord.Game("operating on myself")
+    await bot.change_presence(status=discord.Status.online, activity=game)
     await socket_main()
 
 

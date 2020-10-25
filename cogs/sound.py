@@ -109,7 +109,8 @@ class Sound(commands.Cog):
     @commands.command(name="sounddelete")
     async def sound_delete(self, ctx, name):
         Command = Query()
-        db = Config(ctx.guild)
+        config = Config(ctx.guild)
+        db = TinyDB(config.sounds)
         table = db.table('_default')
 
         try:

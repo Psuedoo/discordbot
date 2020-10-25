@@ -1,6 +1,7 @@
 import os
 import discord
 import asyncio
+import requests
 from tinydb import TinyDB, Query 
 from config import Config
 from cogs.utils import checks
@@ -22,12 +23,12 @@ class Streamer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
-        #self.alert_task = self.loop.create_task(self.check_for_live())
-   
-   # async def check_for_live(self):
-   #     await self.wait_until_ready()
-   #     while not self.is_closed():
-   #         await asyncio.sleep(180)
+        self.TWITCH_CLIENT_ID = os.environ["TWITCH_CLIENT_ID"]
+
+    @commands.command(name="whoslive")
+    async def whos_live(self, ctx, streamer):
+        #reponse = requests.get()
+        pass
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="addstreamer")

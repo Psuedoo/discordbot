@@ -31,8 +31,8 @@ class Config:
         self.roles = config_data.get('roles', roles)
         self.role_message_id = config_data.get('role_message_id', None)
         self.role_message_channel_id = config_data.get('role_message_channel_id', None)
-        self.sounds = config_data.get('sounds', None)
-        self.commands = config_data.get('commands', None)
+        self.sounds =  Path.cwd() / 'sounds' / f'sounds_{self.guild_id}.json'
+        self.commands = Path.cwd() / 'commands' / f'commands_{self.guild_id}.json'
 
         if len(config_data) == 0:
             self.update_config()

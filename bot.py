@@ -105,14 +105,7 @@ async def test(ctx):
     await ctx.send("The test has passed!")
 
 
-@commands.check(checks.is_bot_enabled)
-@bot.command(name="setprefix")
-async def set_prefix(ctx, prefix):
-    guild_id = ctx.message.channel.guild.id
-    current_config = instantiate_configs(ctx.bot.guilds, guild_id)
-    current_config.prefix = str(prefix)
-    current_config.update_config()
-    await ctx.send(f"Prefix has been updated to {prefix}")
+
 
 
 @bot.command(name="vctest")

@@ -2,10 +2,10 @@ from cogs.utils import checks
 from discord.ext import commands
 from config import Config
 
+
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
 
     @commands.command(name="load", hidden=True)
     @commands.check(checks.is_psuedo)
@@ -18,7 +18,6 @@ class Admin(commands.Cog):
         else:
             await ctx.send(f"Loaded {cog}")
 
-
     @commands.command(name="unload", hidden=True)
     @commands.check(checks.is_psuedo)
     async def c_unload(self, ctx, *, cog: str):
@@ -29,7 +28,6 @@ class Admin(commands.Cog):
             await ctx.send(e)
         else:
             await ctx.send(f"Unloaded {cog}")
-
 
     @commands.command(name="reload", hidden=True)
     @commands.check(checks.is_psuedo)
@@ -50,6 +48,15 @@ class Admin(commands.Cog):
         config.streamer_id = streamer_id
         config.update_config()
         await ctx.send("Successfully set streamer id!")
+
+    @commands.check(checks.is_bot_enabled)
+    @commands.command(name="setprefix")
+    async def set_prefix(ctx, prefix):
+        current_config = Config(ctx.guild)
+        current_config.prefix = str(prefix)
+        current_config.update_config()
+        await ctx.send(f"Prefix has been updated to {prefix}")
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))

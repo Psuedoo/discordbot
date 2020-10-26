@@ -2,7 +2,7 @@ import os
 import discord
 import asyncio
 from config import Config
-from command_class import CustomCommand
+from cogs.command import CustomCommand
 from cogs.utils import checks
 from discord.ext import commands
 

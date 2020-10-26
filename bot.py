@@ -2,7 +2,7 @@ import os
 import discord
 import asyncio
 from config import Config
-from cogs.command import CustomCommand
+from cogs.command import CustomCommandClass
 from cogs.utils import checks
 from discord.ext import commands
 
@@ -49,7 +49,7 @@ def prefix(bot, message):
             return config.prefix
 
 
-bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
 bot.owner_id = 266388033631158273
 
 
@@ -72,7 +72,7 @@ async def on_message(message):
     if message.author.bot:
         return
     else:
-        commands = CustomCommand(message.guild)
+        commands = CustomCommandClass(message.guild)
         guild_prefix = prefix(bot, message)
         if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
             await message.channel.send(commands.handle_command(message))
@@ -86,6 +86,31 @@ async def on_member_join(member):
     if guild.system_channel is not None:
         to_send = f"Welcome {member.mention} to {guild.name}!"
         await guild.system_channel.send(to_send)
+
+
+@bot.command(name="help")
+async def help_command(ctx):
+    prefix = await bot.get_prefix(ctx.message)
+    embed_top = discord.Embed(title="Help",
+                              description="PsuedooBot Command Help",
+                              author="Psuedo#2187")
+    embeds = [embed_top]
+    for cog in bot.cogs.values():
+        cog_embed = discord.Embed(title=f'**__{cog.qualified_name} Commands__**',
+                                  description=cog.description)
+        for command in cog.get_commands():
+            if not command.hidden:
+
+                value = f'__About__:\n{command.description}\n\n__Usage__:\n{command.usage}'
+
+                if len(command.aliases) > 0:
+                    value += f'\n\n__Aliases__:\n{command.aliases}'
+
+                cog_embed.add_field(name=command.name, value=value)
+        embeds.append(cog_embed)
+
+    for embed in embeds:
+        await ctx.author.send(content=None, embed=embed)
 
 
 @bot.command(name="test")

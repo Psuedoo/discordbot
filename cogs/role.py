@@ -7,13 +7,13 @@ from discord.ext import commands
 
 
 class ReactionRole(commands.Cog):
+    """*Commands for a react to assign role message*"""
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
 
     # TODO : Added listener for un-react and remove the corresponding role
     async def role_embed_remove(self, config, del_role=None, emoji=None):
-
         for role in config.roles.values():
             if role.get('emoji'):
                 if emoji and role.get('emoji') == emoji or del_role and role.get('name') == del_role.name:
@@ -39,7 +39,7 @@ class ReactionRole(commands.Cog):
             return
         else:
             guild = await self.bot.fetch_guild(reaction.guild_id)
-            current_config = Config(guild.id)
+            current_config = Config(guild)
 
             message_id = current_config.role_message_id
             channel_id = current_config.role_message_channel_id
@@ -111,9 +111,8 @@ class ReactionRole(commands.Cog):
         current_config.update_config()
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="setchannel")
+    @commands.command(name="setchannel", description="Sets a channel for the role react message")
     async def setchannel(self, ctx):
-
         current_config = Config(ctx.guild)
 
         current_config.role_message_channel_id = int(ctx.channel.id)
@@ -144,6 +143,7 @@ class ReactionRole(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="createrole")
     async def createrole(self, ctx, role_name):
+        """Creates a role"""
         await ctx.message.channel.guild.create_role(name=role_name)
 
         await ctx.message.delete()
@@ -153,6 +153,7 @@ class ReactionRole(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="linkemoji")
     async def linkemoji(self, ctx, role_name, emoji):
+        """Links an emoji to a role for the reaction role message"""
         current_config = Config(ctx.guild)
 
         if any(emoji == role.get('emoji') for role in current_config.roles.values()):
@@ -183,6 +184,7 @@ class ReactionRole(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="unlinkemoji")
     async def unlinkemoji(self, ctx, emoji, role=None):
+        """Unlinks an emoji from a role for the role reaction message"""
         current_config = Config(ctx.guild)
 
         unlinked_role = await self.role_embed_remove(current_config, emoji=emoji)

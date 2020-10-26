@@ -40,22 +40,9 @@ async def socket_main():
         await server.serve_forever()
 
 
-def instantiate_configs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return Config(guild)
-
-    else:
-        configs = []
-        for guild in guilds:
-            configs.append(Config(guild))
-        return configs
-
-
 def prefix(bot, message):
     id = message.channel.guild.id
-    configs = instantiate_configs(bot.guilds)
+    configs = [Config(guild) for guild in bot.guilds]
 
     for config in configs:
         if config.guild_id == id:
@@ -63,12 +50,13 @@ def prefix(bot, message):
 
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot.owner_id = 266388033631158273
 
 
 @bot.event
 async def on_ready():
     print("Logged in")
-    configs = instantiate_configs(bot.guilds)
+    configs = [Config(guild) for guild in bot.guilds]
 
     for config in configs:
         print(config.guild_id)
@@ -103,9 +91,6 @@ async def on_member_join(member):
 @bot.command(name="test")
 async def test(ctx):
     await ctx.send("The test has passed!")
-
-
-
 
 
 @bot.command(name="vctest")

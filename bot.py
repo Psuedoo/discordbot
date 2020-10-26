@@ -15,7 +15,8 @@ initial_extensions = ["cogs.basic",
                       "cogs.admin",
                       "cogs.sound",
                       "cogs.command",
-                      "cogs.streamer"]
+                      "cogs.streamer",
+                      "cogs.role"]
 
 
 async def handle_echo(reader, writer):

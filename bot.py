@@ -2,7 +2,7 @@ import os
 import discord
 import asyncio
 from config import Config
-from command_class import CustomCommand
+from cogs.command import CustomCommand
 from cogs.utils import checks
 from discord.ext import commands
 
@@ -15,7 +15,8 @@ initial_extensions = ["cogs.basic",
                       "cogs.admin",
                       "cogs.sound",
                       "cogs.command",
-                      "cogs.streamer"]
+                      "cogs.streamer",
+                      "cogs.role"]
 
 
 async def handle_echo(reader, writer):
@@ -39,22 +40,9 @@ async def socket_main():
         await server.serve_forever()
 
 
-def instantiate_configs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return Config(guild)
-
-    else:
-        configs = []
-        for guild in guilds:
-            configs.append(Config(guild))
-        return configs
-
-
 def prefix(bot, message):
     id = message.channel.guild.id
-    configs = instantiate_configs(bot.guilds)
+    configs = [Config(guild) for guild in bot.guilds]
 
     for config in configs:
         if config.guild_id == id:
@@ -62,12 +50,13 @@ def prefix(bot, message):
 
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot.owner_id = 266388033631158273
 
 
 @bot.event
 async def on_ready():
     print("Logged in")
-    configs = instantiate_configs(bot.guilds)
+    configs = [Config(guild) for guild in bot.guilds]
 
     for config in configs:
         print(config.guild_id)
@@ -102,16 +91,6 @@ async def on_member_join(member):
 @bot.command(name="test")
 async def test(ctx):
     await ctx.send("The test has passed!")
-
-
-@commands.check(checks.is_bot_enabled)
-@bot.command(name="setprefix")
-async def set_prefix(ctx, prefix):
-    guild_id = ctx.message.channel.guild.id
-    current_config = instantiate_configs(ctx.bot.guilds, guild_id)
-    current_config.prefix = str(prefix)
-    current_config.update_config()
-    await ctx.send(f"Prefix has been updated to {prefix}")
 
 
 @bot.command(name="vctest")

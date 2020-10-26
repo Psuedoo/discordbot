@@ -2,7 +2,7 @@ import os
 import discord
 import asyncio
 import requests
-from tinydb import TinyDB, Query 
+from tinydb import TinyDB, Query
 from config import Config
 from cogs.utils import checks
 from discord.ext import commands
@@ -19,15 +19,17 @@ def instantiate_configs(guilds, specific_guild_id=None):
     else:
         return [Config(guild) for guild in guilds]
 
+
 class Streamer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
         self.TWITCH_CLIENT_ID = os.environ["TWITCH_CLIENT_ID"]
 
+    # TODO: Add live notifications for streamers in config
     @commands.command(name="whoslive")
     async def whos_live(self, ctx, streamer):
-        #reponse = requests.get()
+        # reponse = requests.get()
         pass
 
     @commands.check(checks.is_bot_enabled)
@@ -35,7 +37,7 @@ class Streamer(commands.Cog):
     async def add_streamer(self, ctx, streamer_url):
         config = Config(ctx.guild)
         # https://www.twitch.tv/psuedoo
-        streamer_name = streamer_url[streamer_url.rfind("/") + 1:] 
+        streamer_name = streamer_url[streamer_url.rfind("/") + 1:]
 
         config.streamers[streamer_name.strip()] = {'url': streamer_url, 'live': False}
         config.update_config()
@@ -53,7 +55,6 @@ class Streamer(commands.Cog):
         else:
             await ctx.send(f"No streamer with username {streamer_name} found.")
 
-
     @commands.command(name="viewstreamers")
     async def view_streamers(self, ctx):
         config = Config(ctx.guild)
@@ -62,14 +63,15 @@ class Streamer(commands.Cog):
     @commands.command(name="viewstreamer")
     async def view_streamer(self, ctx, streamer_name):
         config = Config(ctx.guild)
-        
-        streamers = {"name": {"url"}, "name2": {"url"},}
+
+        streamers = {"name": {"url"}, "name2": {"url"}, }
         if config.streamers[streamer_name.lower()]:
             streamer_url = config.streamers[streamer_name.lower()].get('url')
 
-            await ctx.send(f"{streamer_name}: <{streamer_url}>") 
+            await ctx.send(f"{streamer_name}: <{streamer_url}>")
         else:
             await ctx.send("Streamer doesn't exist.")
+
 
 def setup(bot):
     bot.add_cog(Streamer(bot))

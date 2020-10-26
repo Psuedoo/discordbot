@@ -82,21 +82,21 @@ class CustomCommand(commands.Cog):
         self.bot = bot
         self.guilds = self.bot.guilds
 
-    @commands.command(name="addcommand")
+    @commands.command(name="addcommand", description="Adds a custom command")
     @commands.check(checks.is_bot_enabled)
     async def add_custom_command(self, ctx, command_name, command_response):
         cc = CustomCommandClass(ctx.guild)
         cc.add_custom_command(command_name, command_response)
         await ctx.send(f"Successfully added {command_name}!")
 
-    @commands.command(name="deletecommand")
+    @commands.command(name="deletecommand", description="Deletes a custom command")
     @commands.check(checks.is_bot_enabled)
     async def delete_custom_command(self, ctx, command_name):
         cc = CustomCommandClass(ctx.guild)
         cc.delete_custom_command(command_name)
         await ctx.send(f"Successfully deleted {command_name}!")
 
-    @commands.command(name="viewcommands")
+    @commands.command(name="viewcommands", description="Displays the custom commands")
     async def view_custom_commands(self, ctx):
         cc = CustomCommandClass(ctx.guild)
         await ctx.send(cc.view_custom_commands())

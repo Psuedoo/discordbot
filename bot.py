@@ -113,12 +113,12 @@ async def help_command(ctx):
         await ctx.author.send(content=None, embed=embed)
 
 
-@bot.command(name="test")
+@bot.command(name="test", hidden=True)
 async def test(ctx):
     await ctx.send("The test has passed!")
 
 
-@bot.command(name="vctest")
+@bot.command(name="vctest", hidden=True)
 async def vctest(message, ctx=None):
     print(message)
     tags = message.split(";")

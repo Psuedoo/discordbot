@@ -41,7 +41,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send(f"Reloaded {cog}")
 
-    @commands.command(name="setstreamerid")
+    @commands.command(name="setstreamerid", description="Set the streamer id for main twitch streamer")
     @commands.check(checks.is_bot_enabled)
     async def set_streamer_id(self, ctx, streamer_id):
         config = Config(ctx.guild)
@@ -50,7 +50,7 @@ class Admin(commands.Cog):
         await ctx.send("Successfully set streamer id!")
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="setprefix")
+    @commands.command(name="setprefix", description="Sets prefix for the bot")
     async def set_prefix(ctx, prefix):
         current_config = Config(ctx.guild)
         current_config.prefix = str(prefix)

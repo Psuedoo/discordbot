@@ -141,9 +141,8 @@ class ReactionRole(commands.Cog):
 
     # TODO : After role creation, add to config file
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="createrole")
+    @commands.command(name="createrole", description="Creates a role")
     async def createrole(self, ctx, role_name):
-        """Creates a role"""
         await ctx.message.channel.guild.create_role(name=role_name)
 
         await ctx.message.delete()
@@ -151,9 +150,8 @@ class ReactionRole(commands.Cog):
         await message.delete(delay=10)
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="linkemoji")
+    @commands.command(name="linkemoji", description="Links an emoji to a role for the reaction role message")
     async def linkemoji(self, ctx, role_name, emoji):
-        """Links an emoji to a role for the reaction role message"""
         current_config = Config(ctx.guild)
 
         if any(emoji == role.get('emoji') for role in current_config.roles.values()):
@@ -182,9 +180,8 @@ class ReactionRole(commands.Cog):
         current_config.update_config()
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="unlinkemoji")
+    @commands.command(name="unlinkemoji", description="Unlinks an emoji from a role for the role reaction message")
     async def unlinkemoji(self, ctx, emoji, role=None):
-        """Unlinks an emoji from a role for the role reaction message"""
         current_config = Config(ctx.guild)
 
         unlinked_role = await self.role_embed_remove(current_config, emoji=emoji)

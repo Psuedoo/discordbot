@@ -115,13 +115,12 @@ class Sound(commands.Cog):
 
         return db.search(Command.command_name == sound)[0]['file']
 
-    @commands.command(name="join")
+    @commands.command(name="join", description="Joins the voice chat of command author")
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
 
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
         if not self.voice_client:
             if ctx:
-                guild = ctx.guild
                 channel = ctx.author.voice.channel
                 self.voice_client = await channel.connect()
             else:
@@ -133,16 +132,14 @@ class Sound(commands.Cog):
                     self.voice_client = await channel.connect()
                 else:
                     print("No channel to connect to")
-        else:
-            pass
 
-    @commands.command(name="leave")
+    @commands.command(name="leave", description="Disconnects the bot from the voice channel")
     async def leave(self, ctx=None):
         await self.voice_client.disconnect()
         self.voice_client = None
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="soundadd")
+    @commands.command(name="soundadd", description="Adds a sound to the sound library")
     async def soundadd(self, ctx, name, url):
         sound = SoundFile(ctx.guild, name, url, title=name)
         try:
@@ -151,12 +148,12 @@ class Sound(commands.Cog):
         except:
             await ctx.send(f"Couldn't add {name} to sounds.")
 
-    @commands.command(name="play")
+    @commands.command(name="play", description="Plays a sound from the sound library")
     async def play(self, ctx, sound):
         await self.sound_handler(sound, ctx.guild.id)
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="sounddelete")
+    @commands.command(name="sounddelete", description="Deletes a sound from the sound library")
     async def sound_delete(self, ctx, name):
         Command = Query()
         config = Config(ctx.guild)
@@ -178,7 +175,7 @@ class Sound(commands.Cog):
             await ctx.send(f"Successfully deleted {name} sound!")
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="viewsounds")
+    @commands.command(name="viewsounds", description="Shows the sounds in the sound library")
     async def viewsounds(self, ctx):
         config = Config(ctx.guild)
         db = TinyDB(config.sounds)

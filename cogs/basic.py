@@ -8,6 +8,7 @@ from discord.ext import commands
 
 
 class Basic(commands.Cog):
+    """*Basic commands for random things*"""
     def __init__(self, bot):
         self.bot = bot
 

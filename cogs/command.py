@@ -78,6 +78,7 @@ class CustomCommandClass:
 
 
 class CustomCommand(commands.Cog):
+    """*Commands regarding custom commands*"""
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds

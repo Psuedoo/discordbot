@@ -70,6 +70,7 @@ class SoundFile:
 
 
 class Sound(commands.Cog):
+    """*Commands for sound functionality*"""
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds

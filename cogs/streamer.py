@@ -21,6 +21,7 @@ def instantiate_configs(guilds, specific_guild_id=None):
 
 
 class Streamer(commands.Cog):
+    """*Commands for the twitch streamers list*"""
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds

@@ -4,6 +4,7 @@ from config import Config
 
 
 class Admin(commands.Cog):
+    """*Admin commands for bot configuration*"""
     def __init__(self, bot):
         self.bot = bot
 

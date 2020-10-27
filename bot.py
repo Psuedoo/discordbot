@@ -89,31 +89,50 @@ async def on_member_join(member):
 
 
 @bot.command(name="help")
-async def help_command(ctx):
+async def help_command(ctx, specific_help=None):
+
+    def build_cog_embed(cogs, specific_cog=None):
+        embeds = []
+        for cog in cogs.values():
+
+            cog_embed = discord.Embed(title=f'**__{cog.qualified_name} Commands__**',
+                                      description=cog.description)
+            for command in cog.get_commands():
+                if not command.hidden:
+                    if len(command.clean_params) > 0:
+                        parameters = [f"<{param}>" for param in command.clean_params.keys()]
+
+                    value = (f'__About__:\n{command.description}\n\n'
+                             f'__Usage__:\n{prefix}{command.qualified_name} {" ".join(parameters)}')
+
+                    if len(command.aliases) > 0:
+                        value += f'\n\n__Aliases__:\n{command.aliases}'
+
+                cog_embed.add_field(name=command.name, value=value)
+            embeds.append(cog_embed)
+
+        if specific_cog:
+            return [embed for embed in embeds if specific_cog.lower() in embed.title.lower()]
+        else:
+            return embeds
+
     prefix = await bot.get_prefix(ctx.message)
     embed_top = discord.Embed(title="Help",
                               description="PsuedooBot Command Help",
                               author="Psuedo#2187")
-    embeds = [embed_top]
-    for cog in bot.cogs.values():
-        cog_embed = discord.Embed(title=f'**__{cog.qualified_name} Commands__**',
-                                  description=cog.description)
-        for command in cog.get_commands():
-            if not command.hidden:
-                if len(command.clean_params) > 0:
-                    parameters = [f"<{param}>" for param in command.clean_params.keys()]
+    if not specific_help:
+        embed_list = build_cog_embed(ctx.bot.cogs)
+    else:
+        embed_list = build_cog_embed(ctx.bot.cogs, specific_help)
 
-                value = (f'__About__:\n{command.description}\n\n'
-                         f'__Usage__:\n{prefix}{command.qualified_name} {" ".join(parameters)}')
+    embed_list.insert(0, embed_top)
 
-                if len(command.aliases) > 0:
-                    value += f'\n\n__Aliases__:\n{command.aliases}'
+    if len(embed_list) > 1:
+        for embed in embed_list:
+            await ctx.author.send(content=None, embed=embed)
 
-                cog_embed.add_field(name=command.name, value=value)
-        embeds.append(cog_embed)
-
-    for embed in embeds:
-        await ctx.author.send(content=None, embed=embed)
+    elif len(embed_list) > 1 and specific_help:
+        await ctx.send(f"Nothing was found with {specific_help}")
 
 
 @bot.command(name="test", hidden=True)

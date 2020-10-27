@@ -100,8 +100,11 @@ async def help_command(ctx):
                                   description=cog.description)
         for command in cog.get_commands():
             if not command.hidden:
+                if len(command.clean_params) > 0:
+                    parameters = [f"<{param}>" for param in command.clean_params.keys()]
 
-                value = f'__About__:\n{command.description}\n\n__Usage__:\n{command.usage}'
+                value = (f'__About__:\n{command.description}\n\n'
+                         f'__Usage__:\n{prefix}{command.qualified_name} {" ".join(parameters)}')
 
                 if len(command.aliases) > 0:
                     value += f'\n\n__Aliases__:\n{command.aliases}'
@@ -115,7 +118,7 @@ async def help_command(ctx):
 
 @bot.command(name="test", hidden=True)
 async def test(ctx):
-    await ctx.send("The test has passed!")
+    await ctx.send(f"The test has passed!")
 
 
 @bot.command(name="vctest", hidden=True)

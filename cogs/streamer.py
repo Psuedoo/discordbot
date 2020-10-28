@@ -26,6 +26,7 @@ class Streamer(commands.Cog):
         self.bot = bot
         self.guilds = self.bot.guilds
         self.TWITCH_CLIENT_ID = os.environ["TWITCH_CLIENT_ID"]
+        self.hidden = True
 
     # TODO: Add live notifications for streamers in config
     @commands.command(name="whoslive", description="Shows what streamers are currently live from the streamer library")

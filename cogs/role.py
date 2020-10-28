@@ -11,6 +11,7 @@ class ReactionRole(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
+        self.hidden = False
 
     # TODO : Added listener for un-react and remove the corresponding role
     async def role_embed_remove(self, config, del_role=None, emoji=None):

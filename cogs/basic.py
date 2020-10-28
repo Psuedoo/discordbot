@@ -11,6 +11,7 @@ class Basic(commands.Cog):
     """*Basic commands for random things*"""
     def __init__(self, bot):
         self.bot = bot
+        self.hidden = False
 
     @commands.command(name="randomnumber", aliases=["randnum", ], description="Generates a random number")
     async def randomnumber(self, ctx, max_number=1000):

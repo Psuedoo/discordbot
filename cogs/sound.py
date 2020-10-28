@@ -77,6 +77,7 @@ class Sound(commands.Cog):
         self.voice_client = None
         self.queue = asyncio.Queue()
         self.lock = asyncio.Lock()
+        self.hidden = False
 
     async def _handle_play(self, item):
         future = asyncio.Future()

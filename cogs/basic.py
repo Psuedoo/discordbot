@@ -8,18 +8,19 @@ from discord.ext import commands
 
 
 class Basic(commands.Cog):
+    """*Basic commands for random things*"""
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="randomnumber", aliases=["randnum", ])
+    @commands.command(name="randomnumber", aliases=["randnum", ], description="Generates a random number")
     async def randomnumber(self, ctx, max_number=1000):
         await ctx.send(random.randint(1, max_number))
 
-    @commands.command(name="randomchoice", aliases=["rc", ])
+    @commands.command(name="randomchoice", aliases=["rc", ], description="Picks from given choices, randomly")
     async def randomchoice(self, ctx, *choices):
         await ctx.send(f"I have chosen {random.choice(choices)}.")
 
-    @commands.command(name="joke")
+    @commands.command(name="joke", description="Tells a joke")
     async def joke(self, ctx):
         url = "https://icanhazdadjoke.com/"
         headers = {"Accept": "application/json"}

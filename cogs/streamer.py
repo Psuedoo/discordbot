@@ -21,19 +21,20 @@ def instantiate_configs(guilds, specific_guild_id=None):
 
 
 class Streamer(commands.Cog):
+    """*Commands for the twitch streamers list*"""
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
         self.TWITCH_CLIENT_ID = os.environ["TWITCH_CLIENT_ID"]
 
     # TODO: Add live notifications for streamers in config
-    @commands.command(name="whoslive")
+    @commands.command(name="whoslive", description="Shows what streamers are currently live from the streamer library")
     async def whos_live(self, ctx, streamer):
         # reponse = requests.get()
         pass
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="addstreamer")
+    @commands.command(name="addstreamer", description="Adds a streamer to the streamer library")
     async def add_streamer(self, ctx, streamer_url):
         config = Config(ctx.guild)
         # https://www.twitch.tv/psuedoo
@@ -45,7 +46,7 @@ class Streamer(commands.Cog):
         await ctx.send(f"{streamer_name} has been added!")
 
     @commands.check(checks.is_bot_enabled)
-    @commands.command(name="removestreamer")
+    @commands.command(name="removestreamer", description="Removes a streamer from the streamer library")
     async def remove_streamer(self, ctx, streamer_name):
         config = Config(ctx.guild)
         if config.streamers[streamer_name.lower()]:
@@ -55,12 +56,12 @@ class Streamer(commands.Cog):
         else:
             await ctx.send(f"No streamer with username {streamer_name} found.")
 
-    @commands.command(name="viewstreamers")
+    @commands.command(name="viewstreamers", description="Displays the streamers in the streamer library")
     async def view_streamers(self, ctx):
         config = Config(ctx.guild)
         await ctx.send([streamer for streamer in config.streamers.keys()])
 
-    @commands.command(name="viewstreamer")
+    @commands.command(name="viewstreamer", description="Displays a certain streamer from the streamer library")
     async def view_streamer(self, ctx, streamer_name):
         config = Config(ctx.guild)
 

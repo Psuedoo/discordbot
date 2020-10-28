@@ -7,6 +7,7 @@ class Admin(commands.Cog):
     """*Admin commands for bot configuration*"""
     def __init__(self, bot):
         self.bot = bot
+        self.hidden = False
 
     @commands.command(name="load", hidden=True, description="Loads a cog")
     @commands.check(checks.is_psuedo)

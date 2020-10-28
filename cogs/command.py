@@ -82,6 +82,7 @@ class CustomCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
+        self.hidden = False
 
     @commands.command(name="addcommand", description="Adds a custom command")
     @commands.check(checks.is_bot_enabled)

@@ -1,6 +1,7 @@
 import os
 import discord
 import asyncio
+import cogs.sound
 from config import Config
 from cogs.command import CustomCommandClass
 from cogs.utils import checks
@@ -16,14 +17,29 @@ initial_extensions = ["cogs.basic",
                       "cogs.sound",
                       "cogs.command",
                       "cogs.streamer",
-                      "cogs.role"]
+                      "cogs.role",
+                      "cogs.poll"]
+
+
+def prefix(bot, message):
+    id = message.channel.guild.id
+    configs = [Config(guild) for guild in bot.guilds]
+
+    for config in configs:
+        if config.guild_id == id:
+            return config.prefix
+
+
+global bot
+bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
+bot.owner_id = 266388033631158273
 
 
 async def handle_echo(reader, writer):
     data = await reader.read(100)
     message = data.decode()
 
-    await vctest(message)
+    await vctest(message, bot.voice_clients)
 
     print(f"Received {message!r}.")
 
@@ -38,19 +54,6 @@ async def socket_main():
 
     async with server:
         await server.serve_forever()
-
-
-def prefix(bot, message):
-    id = message.channel.guild.id
-    configs = [Config(guild) for guild in bot.guilds]
-
-    for config in configs:
-        if config.guild_id == id:
-            return config.prefix
-
-
-bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
-bot.owner_id = 266388033631158273
 
 
 @bot.event
@@ -90,7 +93,6 @@ async def on_member_join(member):
 
 @bot.command(name="help")
 async def help_command(ctx, specific_help=None):
-
     def build_cog_embed(cogs, specific_cog=None):
         embeds = []
         for cog in cogs.values():
@@ -142,7 +144,7 @@ async def test(ctx):
 
 
 @bot.command(name="vctest", hidden=True)
-async def vctest(message, ctx=None):
+async def vctest(message, clients):
     print(message)
     tags = message.split(";")
     print(tags)
@@ -150,8 +152,9 @@ async def vctest(message, ctx=None):
     channel_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("channel_name=")][0]
     discord_id = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("discord_id=")][0]
     sound = bot.get_cog('Sound')
-    await sound.join(None, channel_name, discord_id)
-    await sound.sound_handler(sound_name, discord_id)
+    for client in clients:
+        if discord_id == client.guild.id:
+            await sound.sound_handler(sound_name, discord_id, client)
 
 
 if __name__ == '__main__':

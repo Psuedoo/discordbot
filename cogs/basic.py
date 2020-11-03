@@ -1,9 +1,5 @@
 import random
-import discord
 import requests
-import json
-from config import Config
-from cogs.utils import checks
 from discord.ext import commands
 
 

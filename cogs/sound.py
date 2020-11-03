@@ -79,31 +79,31 @@ class Sound(commands.Cog):
         self.lock = asyncio.Lock()
         self.hidden = False
 
-    async def _handle_play(self, item, ctx):
+    async def _handle_play(self, item, client):
         future = asyncio.Future()
         loop = asyncio.get_event_loop()
 
         def after(*args):
             loop.call_soon_threadsafe(future.set_result, args)
 
-        ctx.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
+        client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
                               after=after)
         callback_args = await future
         return callback_args
 
-    async def handle_queue(self, ctx):
+    async def handle_queue(self, client):
         while not self.queue.empty():
-            if not ctx.voice_client.is_playing():
+            if not client.is_playing():
                 item = await self.queue.get()
-                await self._handle_play(item, ctx)
+                await self._handle_play(item, client)
                 self.queue.task_done()
 
-    async def sound_handler(self, sound, discord_id, ctx):
+    async def sound_handler(self, sound, discord_id, client):
         sound = self.get_sound_file(sound, discord_id)
         if sound:
             await self.queue.put(sound)
             async with self.lock:
-                task = asyncio.create_task(self.handle_queue(ctx))
+                task = asyncio.create_task(self.handle_queue(client))
                 await self.queue.join()
                 await asyncio.gather(task)
         else:

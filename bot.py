@@ -152,9 +152,9 @@ async def vctest(message, clients):
     channel_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("channel_name=")][0]
     discord_id = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("discord_id=")][0]
     sound = bot.get_cog('Sound')
-    for channel in clients:
-        if discord_id == channel.guild.id:
-            await sound.sound_handler(sound_name, discord_id)
+    for client in clients:
+        if discord_id == client.guild.id:
+            await sound.sound_handler(sound_name, discord_id, client)
 
 
 if __name__ == '__main__':

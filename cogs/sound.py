@@ -71,39 +71,39 @@ class SoundFile:
 
 class Sound(commands.Cog):
     """*Commands for sound functionality*"""
+
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
-        self.voice_client = None
         self.queue = asyncio.Queue()
         self.lock = asyncio.Lock()
         self.hidden = False
 
-    async def _handle_play(self, item):
+    async def _handle_play(self, item, ctx):
         future = asyncio.Future()
         loop = asyncio.get_event_loop()
 
         def after(*args):
             loop.call_soon_threadsafe(future.set_result, args)
 
-        self.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
-                               after=after)
+        ctx.voice_client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
+                              after=after)
         callback_args = await future
         return callback_args
 
-    async def handle_queue(self):
+    async def handle_queue(self, ctx):
         while not self.queue.empty():
-            if not self.voice_client.is_playing():
+            if not ctx.voice_client.is_playing():
                 item = await self.queue.get()
-                await self._handle_play(item)
+                await self._handle_play(item, ctx)
                 self.queue.task_done()
 
-    async def sound_handler(self, sound, discord_id=None):
+    async def sound_handler(self, sound, discord_id, ctx):
         sound = self.get_sound_file(sound, discord_id)
         if sound:
             await self.queue.put(sound)
             async with self.lock:
-                task = asyncio.create_task(self.handle_queue())
+                task = asyncio.create_task(self.handle_queue(ctx))
                 await self.queue.join()
                 await asyncio.gather(task)
         else:
@@ -121,24 +121,25 @@ class Sound(commands.Cog):
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
 
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
-        if not self.voice_client:
-            if ctx:
-                channel = ctx.author.voice.channel
-                self.voice_client = await channel.connect()
+        if ctx and ctx.voice_client:
+            channel = ctx.author.voice.channel
+            await ctx.voice_client.move(channel)
+        elif ctx and not ctx.voice_client:
+            channel = ctx.author.voice.channel
+            await channel.connect()
+        else:
+            guild = self.bot.get_guild(int(discord_id))
+            config = Config(guild)
+            streamer = await guild.fetch_member(int(config.streamer_id))
+            channel = streamer.voice.channel
+            if channel:
+                await channel.connect()
             else:
-                guild = self.bot.get_guild(int(discord_id))
-                config = Config(guild)
-                streamer = await guild.fetch_member(int(config.streamer_id))
-                channel = streamer.voice.channel
-                if channel:
-                    self.voice_client = await channel.connect()
-                else:
-                    print("No channel to connect to")
+                print("No channel to connect to")
 
     @commands.command(name="leave", description="Disconnects the bot from the voice channel")
     async def leave(self, ctx=None):
-        await self.voice_client.disconnect()
-        self.voice_client = None
+        await ctx.voice_client.disconnect()
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd", description="Adds a sound to the sound library")

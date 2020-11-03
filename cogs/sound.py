@@ -153,7 +153,7 @@ class Sound(commands.Cog):
 
     @commands.command(name="play", description="Plays a sound from the sound library")
     async def play(self, ctx, sound):
-        await self.sound_handler(sound, ctx.guild.id)
+        await self.sound_handler(sound, ctx.guild.id, ctx)
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="sounddelete", description="Deletes a sound from the sound library")

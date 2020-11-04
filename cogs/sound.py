@@ -153,6 +153,8 @@ class Sound(commands.Cog):
 
     @commands.command(name="play", description="Plays a sound from the sound library")
     async def play(self, ctx, sound):
+        if not ctx.voice_client:
+            await self.join(ctx)
         await self.sound_handler(sound, ctx.guild.id, ctx.voice_client)
 
     @commands.check(checks.is_bot_enabled)

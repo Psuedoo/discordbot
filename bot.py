@@ -154,6 +154,7 @@ async def vctest(message, clients):
     sound = bot.get_cog('Sound')
     for client in clients:
         if int(discord_id) == client.guild.id:
+            await sound.join(discord_id=discord_id)
             await sound.sound_handler(sound_name, discord_id, client)
 
 

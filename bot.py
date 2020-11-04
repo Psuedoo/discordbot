@@ -151,12 +151,25 @@ async def vctest(message, clients):
     sound_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("sound_name=")][0]
     channel_name = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("channel_name=")][0]
     discord_id = [tag[tag.find("=") + 1:] for tag in tags if tag.startswith("discord_id=")][0]
-    sound = bot.get_cog('Sound')
-    for client in clients:
-        if int(discord_id) == client.guild.id:
-            await sound.join(discord_id=discord_id)
-            await sound.sound_handler(sound_name, discord_id, client)
 
+    async def play_sound(bot, clients, discord_id):
+        sound_cog = bot.get_cog('Sound')
+        for client in clients:
+            print(f"Current guild checking: {client.guild.name}")
+            print(f"Current guild id checking: \n{client.guild.id}\n{int(discord_id)}")
+            if int(discord_id) == client.guild.id:
+                await sound_cog.sound_handler(sound_name, discord_id, client)
+                return
+            elif int(discord_id) != client.guild.id:
+                continue
+            else:
+                print("Some error with vctest")
+            
+        clients.append(await sound_cog.join(discord_id=discord_id))
+        await play_sound(bot, clients, discord_id)
+        return
+
+    await play_sound(bot, clients, discord_id)
 
 if __name__ == '__main__':
     for extension in initial_extensions:

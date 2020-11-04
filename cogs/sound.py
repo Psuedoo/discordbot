@@ -100,12 +100,17 @@ class Sound(commands.Cog):
 
     async def sound_handler(self, sound, discord_id, client):
         sound = self.get_sound_file(sound, discord_id)
+        print("Got sound file!")
         if sound:
             await self.queue.put(sound)
+            print("Added sound to queue")
             async with self.lock:
                 task = asyncio.create_task(self.handle_queue(client))
+                print("Created task!")
                 await self.queue.join()
+                print("Joined queue")
                 await asyncio.gather(task)
+                print("Gathered task")
         else:
             print("No sound")
 
@@ -121,21 +126,22 @@ class Sound(commands.Cog):
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
 
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
-        if ctx and ctx.voice_client:
-            channel = ctx.author.voice.channel
-            await ctx.voice_client.move(channel)
-        elif ctx and not ctx.voice_client:
-            channel = ctx.author.voice.channel
-            await channel.connect()
-        else:
+        if not ctx:
             guild = self.bot.get_guild(int(discord_id))
             config = Config(guild)
             streamer = await guild.fetch_member(int(config.streamer_id))
             channel = streamer.voice.channel
             if channel:
-                await channel.connect()
+                return await channel.connect()
             else:
                 print("No channel to connect to")
+
+        elif ctx and ctx.voice_client:
+            channel = ctx.author.voice.channel
+            return await ctx.voice_client.move_to(channel)
+        elif ctx and not ctx.voice_client:
+            channel = ctx.author.voice.channel
+            return await channel.connect()
 
     @commands.command(name="leave", description="Disconnects the bot from the voice channel")
     async def leave(self, ctx=None):

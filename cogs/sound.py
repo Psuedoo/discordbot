@@ -87,7 +87,7 @@ class Sound(commands.Cog):
             loop.call_soon_threadsafe(future.set_result, args)
 
         client.play(discord.FFmpegOpusAudio(os.path.expanduser(item)),
-                              after=after)
+                    after=after)
         callback_args = await future
         return callback_args
 
@@ -153,7 +153,7 @@ class Sound(commands.Cog):
 
     @commands.command(name="play", description="Plays a sound from the sound library")
     async def play(self, ctx, sound):
-        await self.sound_handler(sound, ctx.guild.id, ctx)
+        await self.sound_handler(sound, ctx.guild.id, ctx.voice_client)
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="sounddelete", description="Deletes a sound from the sound library")

@@ -100,17 +100,12 @@ class Sound(commands.Cog):
 
     async def sound_handler(self, sound, discord_id, client):
         sound = self.get_sound_file(sound, discord_id)
-        print("Got sound file!")
         if sound:
             await self.queue.put(sound)
-            print("Added sound to queue")
             async with self.lock:
                 task = asyncio.create_task(self.handle_queue(client))
-                print("Created task!")
                 await self.queue.join()
-                print("Joined queue")
                 await asyncio.gather(task)
-                print("Gathered task")
         else:
             print("No sound")
 

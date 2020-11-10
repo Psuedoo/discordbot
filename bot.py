@@ -1,10 +1,8 @@
 import os
 import discord
 import asyncio
-import cogs.sound
 from config import Config
 from cogs.command import CustomCommandClass
-from cogs.utils import checks
 from discord.ext import commands
 
 token = os.environ["TOKEN"]

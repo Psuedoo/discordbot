@@ -1,3 +1,4 @@
+from sqlalchemy import create_engine
 from sqlalchemy import Table, Boolean, Column, String, Integer, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -44,7 +45,7 @@ class Sounds(Base):
 
 class SoundsAssociation(Base):
     __tablename__ = 'soundsassociation'
-    guild= relationship('Guilds', back_populates='sounds')
+    guild = relationship('Guilds', back_populates='sounds')
     sound = relationship('Sounds', back_populates='guilds')
     command = Column(String(20))
 
@@ -71,3 +72,7 @@ class StreamersAssociation(Base):
     streamer = relationship('Streamers', back_populates='guilds')
     announcement_channel_id = Column(Integer)
     alert = Column(Boolean)
+
+if __name__ == '__main__':
+    engine = create_engine('postgresql://psuedo@192.168.0.179/discordbot_dev')
+    Base.metadata.create_all(engine)

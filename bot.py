@@ -1,6 +1,8 @@
 import os
 import discord
 import asyncio
+import db.db_handler
+from db.models import *
 from config import Config
 from cogs.command import CustomCommandClass
 from discord.ext import commands
@@ -57,10 +59,7 @@ async def socket_main():
 @bot.event
 async def on_ready():
     print("Logged in")
-    configs = [Config(guild) for guild in bot.guilds]
-
-    for config in configs:
-        print(config.guild_id)
+    await db.db_handler.initialize_guilds(bot.guilds)
 
     # TODO : Once converted bot into class, make presence setting command
     game = discord.Game("operating on myself")

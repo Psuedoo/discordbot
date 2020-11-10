@@ -19,7 +19,7 @@ class Guilds(Base):
 
 class Configs(Base):
     __tablename__ = 'configs'
-    id = Column(Integer, ForeignKey('parent.id'), primary_key=True)
+    id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
     guild = relationship('Guilds', back_populates='guilds')
     prefix = Column(String(10))
 
@@ -27,7 +27,7 @@ class Configs(Base):
 class Roles(Base):
     __tablename__ = 'roles'
     id = Column(Integer, primary_key=True)
-    guild = relationship('Guilds', back_populated='guilds')
+    guild = relationship('Guilds', back_populates='guilds')
     name = Column(String(20))
     emoji = Column(String(50))
     reaction_message_id = Column(Integer)
@@ -46,7 +46,9 @@ class Sounds(Base):
 class SoundsAssociation(Base):
     __tablename__ = 'soundsassociation'
     guild = relationship('Guilds', back_populates='sounds')
+    guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
     sound = relationship('Sounds', back_populates='guilds')
+    sound_id = Column(Integer, ForeignKey('sounds.id'), primary_key=True)
     command = Column(String(20))
 
 
@@ -68,10 +70,13 @@ class Streamers(Base):
 
 class StreamersAssociation(Base):
     __tablename__ = 'streamersassociation'
-    guild = relationship('Guilds', back_populate='streamers')
+    guild = relationship('Guilds', back_populates='streamers')
+    guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
     streamer = relationship('Streamers', back_populates='guilds')
+    streamer_id = Column(Integer, ForeignKey('streamers.id'), primary_key=True)
     announcement_channel_id = Column(Integer)
     alert = Column(Boolean)
+
 
 if __name__ == '__main__':
     engine = create_engine('postgresql://psuedo@192.168.0.179/discordbot_dev')

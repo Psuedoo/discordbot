@@ -20,7 +20,7 @@ class Config:
         self.prefix = config_data.get('prefix', '?')
         self.guild_name = config_data.get('guild_name', guild.name)
         self.guild_id = config_data.get('guild_id', guild.id)
-        self.owner_id = config_data.get('owner_id', guild.owner.id)
+        self.owner_id = config_data.get('owner_id', guild.owner_id)
         self.streamer_id = config_data.get('streamer_id', None)
         self.streamer_announcement_channel_id = config_data.get('streamer_announcement_channel_id', None)
         self.streamers = config_data.get('streamers', {})

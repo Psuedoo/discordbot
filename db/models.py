@@ -24,6 +24,8 @@ class Configs(Base):
     # guild = relationship('Guilds', back_populates='configs')
     # guild_id = Column(BigInteger, ForeignKey('guilds.id'), primary_key=True)
     prefix = Column(String(10))
+    reaction_message_id = Column(BigInteger)
+    reaction_channel_id = Column(BigInteger)
 
 
 class Roles(Base):
@@ -34,8 +36,6 @@ class Roles(Base):
     name = Column(String(20))
     emoji = Column(String(50))
     # This data should be in config
-    reaction_message_id = Column(BigInteger)
-    reaction_channel_id = Column(BigInteger)
 
 
 class Sounds(Base):

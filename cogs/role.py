@@ -8,6 +8,7 @@ from discord.ext import commands
 
 class ReactionRole(commands.Cog):
     """*Commands for a react to assign role message*"""
+
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
@@ -160,25 +161,25 @@ class ReactionRole(commands.Cog):
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="linkemoji", description="Links an emoji to a role for the reaction role message")
-    async def linkemoji(self, ctx, role_mention, emoji):
+    async def linkemoji(self, ctx, role_to_link, emoji):
 
-        mentioned_roles = ctx.mentioned_roles
+        mentioned_roles = ctx.message.role_mentions
 
         if len(mentioned_roles) > 1:
             await ctx.send("Please only mention one role")
             return
         else:
-            mentioned_role = mentioned_roles
+            mentioned_role = mentioned_roles[0]
 
         roles = await db.db_handler_role.get_emoji_roles(ctx.guild)
 
-        await db.db_handler_role.link_emoji(ctx.guild, mentioned_role, emoji)
-
-        if any(emoji == role.get('emoji') for role in roles.values()):
+        if any(emoji == role.get('emoji') for role in roles):
             await ctx.send("That emoji is already in use.")
             return
 
         else:
+            await db.db_handler_role.link_emoji(ctx.guild, mentioned_role, emoji)
+            await ctx.send(f'Successfully linked {mentioned_role.name} to {emoji}.')
             for role in roles:
                 if role.get('name') == mentioned_role.name and emoji:
                     role['emoji'] = emoji
@@ -186,22 +187,22 @@ class ReactionRole(commands.Cog):
                     response = await ctx.send(f"Linked {role.get('name')} with {emoji}")
                     await response.delete(delay=10)
 
-                    # TODO: Change where role_message information is stored (Roles table -> Config table)
-                    #       Then, resume here adding reactions to the role reaction message
-                    #       If not message, maybe create one in announcements channel by default?
-                    #       Also maybe add channels to database for future usages like creating/deleting channels
-                    # channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
-                    # message = await channel.fetch_message(current_config.role_message_id)
+                    message_id, channel_id = await db.db_handler_role.get_role_message_info(ctx.guild)
 
-                    # role_embed = message.embeds[0]
-                    # role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
-                    # await message.edit(embed=role_embed)
+                    if message_id and channel_id:
+                        channel = await self.bot.fetch_channel(channel_id)
+                        message = await channel.fetch_message(message_id)
 
-                    # await message.add_reaction(emoji)
+                        role_embed = message.embeds[0]
+                        role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
+                        await message.edit(embed=role_embed)
 
-                    # break
+                        await message.add_reaction(emoji)
 
-        # current_config.update_config()
+                        break
+
+                    else:
+                        return
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="unlinkemoji", description="Unlinks an emoji from a role for the role reaction message")

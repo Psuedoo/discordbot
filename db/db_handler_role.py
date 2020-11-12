@@ -35,3 +35,12 @@ def local_get_emoji_roles(session, guild_id):
 
     return roles
 
+
+async def get_role_message_info(guild):
+    async with await db_handler.connection() as c:
+        return await c.run_sync(local_get_role_message_info, guild)
+
+
+def local_get_role_message_info(session, guild_id):
+    row = session.query(Configs).filter(Configs.id == guild_id).one_or_none()
+    return row.reaction_message_id, row.reaction_channel_id

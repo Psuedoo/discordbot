@@ -24,15 +24,13 @@ async def initialize_guilds(guilds=[]):
                 print(f"Adding {guild.name} to database.")
                 data = [
                     Guilds(id=guild.id, name=guild.name, owner_id=guild.owner_id),
-                    Configs(id=guild.id, prefix='?')
+                    Configs(id=guild.id, prefix='?', reaction_message_id=None, reaction_channel_id=None)
                 ]
                 for role in guild.roles:
                     data.append(Roles(id=role.id,
                                       guild_id=guild.id,
                                       name=role.name,
-                                      emoji=None,
-                                      reaction_message_id=None,
-                                      reaction_channel_id=None))
+                                      emoji=None))
                 await insert(data)
             else:
                 print(f"{guild.name} already exists in database. Skipping...")

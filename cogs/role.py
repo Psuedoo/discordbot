@@ -120,20 +120,18 @@ class ReactionRole(commands.Cog):
 
         current_config.update_config()
 
-        linked_roles = {}
+        role_embed = discord.Embed(title="Reaction Roles")
 
         for role in current_config.roles.values():
             if role.get('emoji'):
-                linked_roles['name'] = role.get('name')
-                linked_roles['emoji'] = role.get('emoji')
+                role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
 
-        role_embed = discord.Embed(title="Reaction Roles")
-
-        for role in linked_roles.items():
-            role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
 
         await ctx.send("React with the following emojis for the corresponding role:")
         message = await ctx.send(embed=role_embed)
+        for role in current_config.roles.values():
+            if role.get('emoji'):
+                await message.add_reaction(emoji=role.get('emoji'))
         await ctx.message.delete()
 
         current_config.role_message_id = int(message.id)

@@ -7,6 +7,7 @@ class Poll(commands.Cog):
     """*Commands for working the polls*"""
     def __init__(self, bot):
         self.bot = bot
+        self.hidden = True
 
     @commands.command(name="pollcreate")
     async def poll_create(self, ctx):

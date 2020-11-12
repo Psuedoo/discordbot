@@ -1,6 +1,6 @@
 from sqlalchemy import delete
 from sqlalchemy import create_engine
-from sqlalchemy import Table, Boolean, Column, String, Integer, ForeignKey
+from sqlalchemy import Table, Boolean, Column, String, Integer, ForeignKey, BigInteger
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -8,9 +8,9 @@ Base = declarative_base()
 
 class Guilds(Base):
     __tablename__ = 'guilds'
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     name = Column(String(20))
-    owner_id = Column(Integer)
+    owner_id = Column(BigInteger)
     config = relationship('Configs', backref='guilds', cascade='all, delete')
     roles = relationship('Roles', backref='guilds', cascade='all, delete')
     sounds = relationship('SoundsAssociation', backref='guilds', cascade='all, delete')
@@ -20,21 +20,22 @@ class Guilds(Base):
 
 class Configs(Base):
     __tablename__ = 'configs'
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, ForeignKey('guilds.id'), primary_key=True)
     # guild = relationship('Guilds', back_populates='configs')
-    guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
+    # guild_id = Column(BigInteger, ForeignKey('guilds.id'), primary_key=True)
     prefix = Column(String(10))
 
 
 class Roles(Base):
     __tablename__ = 'roles'
-    id = Column(Integer, primary_key=True)
-    guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
+    id = Column(BigInteger, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     # guild = relationship('Guilds', back_populates='roles', cascade='all, delete')
     name = Column(String(20))
     emoji = Column(String(50))
-    reaction_message_id = Column(Integer)
-    reaction_channel_id = Column(Integer)
+    # This data should be in config
+    reaction_message_id = Column(BigInteger)
+    reaction_channel_id = Column(BigInteger)
 
 
 class Sounds(Base):
@@ -51,7 +52,7 @@ class SoundsAssociation(Base):
     __tablename__ = 'soundsassociation'
     id = Column(Integer, primary_key=True)
     # guild = relationship('Guilds', back_populates='sounds')
-    guild_id = Column(Integer, ForeignKey('guilds.id'))
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     # sound = relationship('Sounds', back_populates='guilds')
     sound_id = Column(Integer, ForeignKey('sounds.id'))
     command = Column(String(20))
@@ -60,7 +61,7 @@ class SoundsAssociation(Base):
 class Commands(Base):
     __tablename__ = 'commands'
     id = Column(Integer, primary_key=True)
-    guild_id = Column(Integer, ForeignKey('guilds.id'))
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     # guild = relationship('Guilds', back_populates='commands')
     name = Column(String(20))
     response = Column(String(500))
@@ -69,7 +70,7 @@ class Commands(Base):
 class Streamers(Base):
     __tablename__ = 'streamers'
     id = Column(Integer, primary_key=True)
-    guild_id = Column(Integer, ForeignKey('guilds.id'))
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     guild = relationship('StreamersAssociation', backref='streamers')
     name = Column(String(20))
     url = Column(String(500))
@@ -77,9 +78,9 @@ class Streamers(Base):
 
 class StreamersAssociation(Base):
     __tablename__ = 'streamersassociation'
-    guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
-    streamer_id = Column(Integer, ForeignKey('streamers.id'), primary_key=True)
-    announcement_channel_id = Column(Integer)
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'), primary_key=True)
+    streamer_id = Column(BigInteger, ForeignKey('streamers.id'), primary_key=True)
+    announcement_channel_id = Column(BigInteger)
     alert = Column(Boolean)
 
 

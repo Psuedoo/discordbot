@@ -20,14 +20,14 @@ initial_extensions = ["cogs.basic",
                       "cogs.role",
                       "cogs.poll"]
 
+# TODO: Change commands from file usage -> DB
+#           - Get/Set Prefix in DB
 
-def prefix(bot, message):
-    id = message.channel.guild.id
-    configs = [Config(guild) for guild in bot.guilds]
 
-    for config in configs:
-        if config.guild_id == id:
-            return config.prefix
+
+async def prefix(bot, message):
+    guild = message.channel.guild
+    return await db.db_handler.get_prefix(guild)
 
 
 global bot
@@ -73,11 +73,12 @@ async def on_message(message):
         return
     else:
         commands = CustomCommandClass(message.guild)
-        guild_prefix = prefix(bot, message)
+        guild_prefix = await prefix(bot, message)
         if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
             await message.channel.send(commands.handle_command(message))
         else:
             await bot.process_commands(message)
+
 
 
 @bot.event
@@ -159,7 +160,7 @@ async def vctest(message, clients):
                 continue
             else:
                 print("Some error with vctest")
-            
+
         clients.append(await sound_cog.join(discord_id=discord_id))
         await play_sound(bot, clients, discord_id)
         return

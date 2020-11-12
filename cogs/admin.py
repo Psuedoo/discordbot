@@ -1,10 +1,12 @@
 from cogs.utils import checks
 from discord.ext import commands
 from config import Config
+from db import db_handler
 
 
 class Admin(commands.Cog):
     """*Admin commands for bot configuration*"""
+
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -54,9 +56,7 @@ class Admin(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="setprefix", description="Sets prefix for the bot")
     async def set_prefix(self, ctx, prefix):
-        current_config = Config(ctx.guild)
-        current_config.prefix = str(prefix)
-        current_config.update_config()
+        await db_handler.set_prefix(ctx.guild, prefix)
         await ctx.send(f"Prefix has been updated to {prefix}")
 
 

@@ -1,6 +1,6 @@
 import discord
-from pathlib import Path
-from tinydb import TinyDB, Query
+import db.db_handler_role
+from db.models import *
 from config import Config
 from cogs.utils import checks
 from discord.ext import commands
@@ -90,9 +90,17 @@ class ReactionRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
-        current_config = Config(role.guild)
-        current_config.roles[role.id] = {'name': role.name, 'emoji': None}
-        current_config.update_config()
+        data = [Roles(id=role.id,
+                      guild_id=role.guild.id,
+                      name=role.name,
+                      emoji=None,
+                      reaction_message_id=None,
+                      reaction_channel_id=None)]
+
+        await db.db_handler.insert(data)
+        # current_config = Config(role.guild)
+        # current_config.roles[role.id] = {'name': role.name, 'emoji': None}
+        # current_config.update_config()
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
@@ -152,33 +160,48 @@ class ReactionRole(commands.Cog):
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="linkemoji", description="Links an emoji to a role for the reaction role message")
-    async def linkemoji(self, ctx, role_name, emoji):
-        current_config = Config(ctx.guild)
+    async def linkemoji(self, ctx, role_mention, emoji):
 
-        if any(emoji == role.get('emoji') for role in current_config.roles.values()):
+        mentioned_roles = ctx.mentioned_roles
+
+        if len(mentioned_roles) > 1:
+            await ctx.send("Please only mention one role")
+            return
+        else:
+            mentioned_role = mentioned_roles
+
+        roles = await db.db_handler_role.get_emoji_roles(ctx.guild)
+
+        await db.db_handler_role.link_emoji(ctx.guild, mentioned_role, emoji)
+
+        if any(emoji == role.get('emoji') for role in roles.values()):
             await ctx.send("That emoji is already in use.")
             return
 
         else:
-            for role in current_config.roles.values():
-                if role.get('name') == role_name and emoji:
+            for role in roles:
+                if role.get('name') == mentioned_role.name and emoji:
                     role['emoji'] = emoji
                     await ctx.message.delete()
                     response = await ctx.send(f"Linked {role.get('name')} with {emoji}")
                     await response.delete(delay=10)
 
-                    channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
-                    message = await channel.fetch_message(current_config.role_message_id)
+                    # TODO: Change where role_message information is stored (Roles table -> Config table)
+                    #       Then, resume here adding reactions to the role reaction message
+                    #       If not message, maybe create one in announcements channel by default?
+                    #       Also maybe add channels to database for future usages like creating/deleting channels
+                    # channel = await self.bot.fetch_channel(current_config.role_message_channel_id)
+                    # message = await channel.fetch_message(current_config.role_message_id)
 
-                    role_embed = message.embeds[0]
-                    role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
-                    await message.edit(embed=role_embed)
+                    # role_embed = message.embeds[0]
+                    # role_embed.add_field(name=f"{role.get('name')}", value=f"{role.get('emoji')}")
+                    # await message.edit(embed=role_embed)
 
-                    await message.add_reaction(emoji)
+                    # await message.add_reaction(emoji)
 
-                    break
+                    # break
 
-        current_config.update_config()
+        # current_config.update_config()
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="unlinkemoji", description="Unlinks an emoji from a role for the role reaction message")

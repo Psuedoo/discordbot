@@ -83,7 +83,7 @@ async def delete_role(role):
 
 
 def local_delete_role(session, role_id):
-    session.query(Roles).filter(Roles.id == role_id).one_or_none().delete()
+    session.query(Roles).filter(Roles.id == role_id).delete()
     session.commit()
 
 

@@ -85,6 +85,10 @@ class ReactionRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
+        role = await db.db_handler_role.get_role(role)
+        guild = await self.bot.fetch_guild(role.guild_id)
+        if role.emoji:
+            await self.role_embed_remove(guild, role)
         await db.db_handler_role.delete_role(role)
 
     @commands.Cog.listener()

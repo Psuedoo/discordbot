@@ -4,6 +4,7 @@ import asyncio
 import db.db_handler
 from db.models import *
 from config import Config
+from db.db_handler_command import get_command_names, get_response
 from cogs.command import CustomCommandClass
 from discord.ext import commands
 
@@ -20,9 +21,9 @@ initial_extensions = ["cogs.basic",
                       "cogs.role",
                       "cogs.poll"]
 
+
 # TODO: Change commands from file usage -> DB
 #           - Get/Set Prefix in DB
-
 
 
 async def prefix(bot, message):
@@ -72,13 +73,14 @@ async def on_message(message):
     if message.author.bot:
         return
     else:
-        commands = CustomCommandClass(message.guild)
+        command_names = await get_command_names(message.guild)
+        print(command_names)
         guild_prefix = await prefix(bot, message)
-        if message.content.startswith(guild_prefix) and message.content[1:] in commands.view_custom_commands():
-            await message.channel.send(commands.handle_command(message))
+        if message.content.startswith(guild_prefix) and message.content[1:] in command_names:
+            response = await get_response(message.guild, message.content[1:])
+            await message.channel.send(response[0])
         else:
             await bot.process_commands(message)
-
 
 
 @bot.event
@@ -166,6 +168,7 @@ async def vctest(message, clients):
         return
 
     await play_sound(bot, clients, discord_id)
+
 
 if __name__ == '__main__':
     for extension in initial_extensions:

@@ -27,8 +27,7 @@ def local_unlink_emoji(session, guild_id, emoji):
 
 async def get_emoji_roles(guild):
     async with await db_handler.connection() as c:
-        roles = await c.run_sync(local_get_emoji_roles, guild.id)
-        return roles
+        return await c.run_sync(local_get_emoji_roles, guild.id)
 
 
 def local_get_emoji_roles(session, guild_id):
@@ -36,10 +35,7 @@ def local_get_emoji_roles(session, guild_id):
     roles = []
     for row in rows:
         if row.emoji:
-            role = {}
-            role['name'] = row.name
-            role['emoji'] = row.emoji
-            roles.append(role)
+            roles.append({'name': row.name, 'emoji': row.emoji})
         else:
             continue
 

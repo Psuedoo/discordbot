@@ -1,6 +1,3 @@
-from pathlib import Path
-from tinydb import TinyDB, Query
-from config import Config
 from cogs.utils import checks
 from discord.ext import commands
 from db.db_handler import insert

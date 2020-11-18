@@ -5,7 +5,6 @@ import db.db_handler
 from db.models import *
 from config import Config
 from db.db_handler_command import get_command_names, get_response
-from cogs.command import CustomCommandClass
 from discord.ext import commands
 
 token = os.environ["TOKEN"]
@@ -74,7 +73,6 @@ async def on_message(message):
         return
     else:
         command_names = await get_command_names(message.guild)
-        print(command_names)
         guild_prefix = await prefix(bot, message)
         if message.content.startswith(guild_prefix) and message.content[1:] in command_names:
             response = await get_response(message.guild, message.content[1:])

@@ -78,8 +78,9 @@ class Streamers(Base):
 
 class StreamersAssociation(Base):
     __tablename__ = 'streamersassociation'
-    guild_id = Column(BigInteger, ForeignKey('guilds.id'), primary_key=True)
-    streamer_id = Column(BigInteger, ForeignKey('streamers.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
+    streamer_id = Column(Integer, ForeignKey('streamers.id'))
     announcement_channel_id = Column(BigInteger)
     alert = Column(Boolean)
 

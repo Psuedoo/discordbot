@@ -8,6 +8,8 @@ from cogs.utils import checks
 from discord.ext import commands
 from discord.abc import Messageable
 from discord.utils import get
+from db import db_handler, db_handler_streamer
+from db.models import Streamers, StreamersAssociation
 
 
 def instantiate_configs(guilds, specific_guild_id=None):
@@ -34,17 +36,44 @@ class Streamer(commands.Cog):
         # reponse = requests.get()
         pass
 
+    # TODO: Streamers.guild_id -> List; check list for associations and add if not in it
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="addstreamer", description="Adds a streamer to the streamer library")
     async def add_streamer(self, ctx, streamer_url):
-        config = Config(ctx.guild)
-        # https://www.twitch.tv/psuedoo
-        streamer_name = streamer_url[streamer_url.rfind("/") + 1:]
 
-        config.streamers[streamer_name.strip()] = {'url': streamer_url, 'live': False}
-        config.update_config()
+        streamer_id = await db_handler_streamer.streamer_exists(streamer_url)
+        association_streamer_id = await db_handler_streamer.association_exists(ctx.guild, streamer_url)
 
-        await ctx.send(f"{streamer_name} has been added!")
+        if streamer_id and not association_streamer_id:
+
+            data = [StreamersAssociation(guild_id=ctx.guild.id,
+                                         streamer_id=streamer_id,
+                                         announcement_channel_id=ctx.guild.system_channel.id,
+                                         alert=False)]
+            await db_handler.insert(data)
+
+            await ctx.send("They have been added!")
+        elif not streamer_id and not association_streamer_id:
+
+            streamer_name = streamer_url[streamer_url.rfind("/") + 1:]
+
+            streamer_data = [Streamers(guild_id=None,
+                                       name=streamer_name,
+                                       url=streamer_url)]
+            await db_handler.insert(streamer_data)
+
+            streamer_id = await db_handler_streamer.get_streamer_id(streamer_name)
+
+            data = [StreamersAssociation(guild_id=ctx.guild.id,
+                                         streamer_id=streamer_id,
+                                         announcement_channel_id=ctx.guild.system_channel.id,
+                                         alert=False)]
+            await db_handler.insert(data)
+
+            await ctx.send(f"{streamer_name} has been added!")
+        else:
+            await ctx.send("Streamer already exists!")
+
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="removestreamer", description="Removes a streamer from the streamer library")

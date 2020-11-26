@@ -57,9 +57,9 @@ class Streamer(commands.Cog):
 
             streamer_name = streamer_url[streamer_url.rfind("/") + 1:]
 
-            streamer_data = [Streamers(guild_id=None,
-                                       name=streamer_name,
+            streamer_data = [Streamers(name=streamer_name,
                                        url=streamer_url)]
+
             await db_handler.insert(streamer_data)
 
             streamer_id = await db_handler_streamer.get_streamer_id(streamer_name)

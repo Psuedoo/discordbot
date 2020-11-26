@@ -70,7 +70,6 @@ class Commands(Base):
 class Streamers(Base):
     __tablename__ = 'streamers'
     id = Column(Integer, primary_key=True)
-    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     guild = relationship('StreamersAssociation', backref='streamers')
     name = Column(String(20))
     url = Column(String(500))

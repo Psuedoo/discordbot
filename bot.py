@@ -12,6 +12,7 @@ token = os.environ["TOKEN"]
 intents = discord.Intents.default()
 intents.members = True
 
+
 initial_extensions = ["cogs.basic",
                       "cogs.admin",
                       "cogs.sound",
@@ -19,7 +20,6 @@ initial_extensions = ["cogs.basic",
                       "cogs.streamer",
                       "cogs.role",
                       "cogs.poll"]
-
 
 # TODO: Change commands from file usage -> DB
 #           - Get/Set Prefix in DB

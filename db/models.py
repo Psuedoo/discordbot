@@ -43,9 +43,9 @@ class Sounds(Base):
     id = Column(Integer, primary_key=True)
     # guild_id = Column(Integer, ForeignKey('guilds.id'), primary_key=True)
     guild = relationship('SoundsAssociation', backref='sounds')
-    name = Column(String(20))
+    name = Column(String(100))
     url = Column(String(500))
-    file_directory = Column(String(100))
+    file_directory = Column(String(500))
 
 
 class SoundsAssociation(Base):

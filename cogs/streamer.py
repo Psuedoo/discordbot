@@ -24,6 +24,7 @@ def instantiate_configs(guilds, specific_guild_id=None):
 
 class Streamer(commands.Cog):
     """*Commands for the twitch streamers list*"""
+
     def __init__(self, bot):
         self.bot = bot
         self.guilds = self.bot.guilds
@@ -74,34 +75,33 @@ class Streamer(commands.Cog):
         else:
             await ctx.send("Streamer already exists!")
 
-
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="removestreamer", description="Removes a streamer from the streamer library")
     async def remove_streamer(self, ctx, streamer_name):
-        config = Config(ctx.guild)
-        if config.streamers[streamer_name.lower()]:
-            config.streamers.pop(streamer_name.lower())
-            config.update_config()
-            await ctx.send(f"{streamer_name.lower()} has been removed!")
-        else:
-            await ctx.send(f"No streamer with username {streamer_name} found.")
+        try:
+            await db_handler_streamer.remove_streamer(ctx.guild, streamer_name.lower())
+            await ctx.send(f'{streamer_name} has been removed!')
+        except:
+            await ctx.send(f'Could not remove {streamer_name}')
 
     @commands.command(name="viewstreamers", description="Displays the streamers in the streamer library")
     async def view_streamers(self, ctx):
-        config = Config(ctx.guild)
-        await ctx.send([streamer for streamer in config.streamers.keys()])
+        streamers = await db_handler_streamer.get_streamers(ctx.guild)
+        if streamers:
+            embed = discord.Embed(title="Streamers", description="Our community streamers")
+            for streamer in streamers:
+                embed.add_field(name=streamer['name'], value=streamer['url'], inline=False)
+            await ctx.send(embed=embed)
+        elif not streamers:
+            await ctx.send('There are no streamers linked in the community')
 
     @commands.command(name="viewstreamer", description="Displays a certain streamer from the streamer library")
     async def view_streamer(self, ctx, streamer_name):
-        config = Config(ctx.guild)
-
-        streamers = {"name": {"url"}, "name2": {"url"}, }
-        if config.streamers[streamer_name.lower()]:
-            streamer_url = config.streamers[streamer_name.lower()].get('url')
-
-            await ctx.send(f"{streamer_name}: <{streamer_url}>")
+        streamer = await db_handler_streamer.get_streamer(streamer_name)
+        if streamer:
+            await ctx.send(f'{streamer.name}: {streamer.url}')
         else:
-            await ctx.send("Streamer doesn't exist.")
+            await ctx.send(f'{streamer_name} not found.')
 
 
 def setup(bot):

@@ -1,25 +1,9 @@
 import os
 import discord
-import asyncio
-import requests
-from tinydb import TinyDB, Query
-from config import Config
 from cogs.utils import checks
 from discord.ext import commands
-from discord.abc import Messageable
-from discord.utils import get
 from db import db_handler, db_handler_streamer
 from db.models import Streamers, StreamersAssociation
-
-
-def instantiate_configs(guilds, specific_guild_id=None):
-    if specific_guild_id:
-        for guild in guilds:
-            if guild.id == specific_guild_id:
-                return Config(guild)
-
-    else:
-        return [Config(guild) for guild in guilds]
 
 
 class Streamer(commands.Cog):

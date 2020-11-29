@@ -2,8 +2,6 @@ import os
 import discord
 import asyncio
 import db.db_handler
-from db.models import *
-from config import Config
 from db.db_handler_command import get_command_names, get_response
 from discord.ext import commands
 

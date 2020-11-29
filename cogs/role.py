@@ -1,7 +1,6 @@
 import discord
 import db.db_handler_role
 from db.models import *
-from config import Config
 from cogs.utils import checks
 from discord.ext import commands
 

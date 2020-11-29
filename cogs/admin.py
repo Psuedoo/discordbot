@@ -1,6 +1,5 @@
 from cogs.utils import checks
 from discord.ext import commands
-from config import Config
 from db import db_handler, db_handler_admin
 
 

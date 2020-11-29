@@ -1,3 +1,4 @@
+import os
 from db.models import *
 from db import db_handler
 
@@ -46,20 +47,23 @@ async def delete_sound(guild, command_name):
 
 
 def local_delete_sound(session, guild_id, command_name):
-    row = session.query(SoundsAssociation).filter(SoundsAssociation.command == command_name,
-                                                  SoundsAssociation.guild_id == guild_id).one_or_none()
-    if row:
-        print('Association found')
-        sound_id = row.sound_id
-        print(f'{sound_id=}')
-        sounds = session.query(SoundsAssociation).filter(SoundsAssociation.sound_id == sound_id)
-        sounds_list = [sound for sound in sounds]
+    association = session.query(SoundsAssociation).filter(SoundsAssociation.command == command_name,
+                                                          SoundsAssociation.guild_id == guild_id).one_or_none()
+    if association:
+        sound_id = association.sound_id
+        all_associations = session.query(SoundsAssociation).filter(SoundsAssociation.sound_id == sound_id)
+        sound = session.query(Sounds).filter(Sounds.id == sound_id).one_or_none()
+        sounds_list = [sound.command for sound in all_associations]
 
         if len(sounds_list) > 1:
-            session.delete(row)
+            session.delete(association)
         elif len(sounds_list) == 1:
-            session.delete(row)
+            if os.path.isfile(sound.file_directory):
+                os.remove(sound.file_directory)
+
+            session.delete(association)
             session.query(Sounds).filter(Sounds.id == sound_id).delete()
+
     else:
         return
 

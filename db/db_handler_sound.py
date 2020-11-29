@@ -20,11 +20,11 @@ async def association_exists(guild, url):
 
 
 def local_assocation_exists(session, guild_id, url):
-    id = local_sound_exists(session, url)
-    if not id:
+    sound_id = local_sound_exists(session, url)
+    if not sound_id:
         return False
     row = session.query(SoundsAssociation).filter(SoundsAssociation.guild_id == guild_id,
-                                                  SoundsAssociation.sound_id == id)
+                                                  SoundsAssociation.sound_id == sound_id).one_or_none()
     if row:
         return True
     return False

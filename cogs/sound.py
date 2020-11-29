@@ -166,23 +166,22 @@ class Sound(commands.Cog):
     async def leave(self, ctx=None):
         await ctx.voice_client.disconnect()
 
-
-
     # TODO: RESUME HERE
-
-
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd", description="Adds a sound to the sound library")
     async def soundadd(self, ctx, command_name, url):
+        # Generates a name and directory based on name
         name = secrets.token_urlsafe(16)
         file_path = Path.cwd() / 'sounds' / f'{name}'
 
         ydl_opts = self.generate_ydl_opts(file_path)
 
+        # Determining if the sound or solely an association exists
         sound_id = await db_handler_sound.sound_exists(url)
         association_sound_id = await db_handler_sound.association_exists(ctx.guild, url)
 
+        # There is a valid sound, but no association
         if sound_id and not association_sound_id:
             data = [SoundsAssociation(guild_id=ctx.guild.id,
                                       sound_id=sound_id,
@@ -190,7 +189,8 @@ class Sound(commands.Cog):
             await db_handler.insert(data)
             await ctx.send(f'{command_name} has been added!')
 
-        elif not sound_id and not association_sound_id:
+        # There is no sound (there can't be an association if there is no sound)
+        elif not sound_id:
             file_path = self.download_sound(ydl_opts, url, file_path)
             data = [Sounds(name=name,
                            url=url,
@@ -205,6 +205,7 @@ class Sound(commands.Cog):
             await db_handler.insert(data)
 
             await ctx.send(f'{command_name} has been added!')
+        # ! We are hitting this when trying to add a sound, not sure what's happening
         else:
             await ctx.send(f'{command_name} already exists!')
 

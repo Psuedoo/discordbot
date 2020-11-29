@@ -68,3 +68,13 @@ def local_delete_sound(session, guild_id, command_name):
         return
 
     session.commit()
+
+
+async def view_guild_sounds(guild):
+    async with await db_handler.connection() as c:
+        return await c.run_sync(local_view_guild_sounds, guild.id)
+
+
+def local_view_guild_sounds(session, guild_id):
+    sounds = session.query(SoundsAssociation).filter(SoundsAssociation.guild_id == guild_id)
+    return [sound.command for sound in sounds]

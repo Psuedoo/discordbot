@@ -127,8 +127,11 @@ class Sound(commands.Cog):
         return db.search(Command.command_name == sound)[0]['file']
 
     # TODO: Add check to see if url is already in db. If so: just add an association
-    def download_sound(self, ydl_opts, url, file_path):
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    def download_sound(self, url, file_path):
+        with youtube_dl.YoutubeDL({'format': 'bestaudio',
+                                   'noplaylist': True,
+                                   'outtmpl': f'{file_path}.%(ext)s',
+                                   'postprocessors': [{'key': 'FFmpegExtractAudio'}]}) as ydl:
             ydl.download([url])
 
         for file in self.path.iterdir():
@@ -136,10 +139,7 @@ class Sound(commands.Cog):
                 return file
 
     def generate_ydl_opts(self, file_path):
-        return {'format': 'bestaudio',
-                'noplaylist': True,
-                'outtmpl': f'{file_path}.%(ext)s',
-                'postprocessors': [{'key': 'FFmpegExtractAudio'}]}
+        return
 
     @commands.command(name="join", description="Joins the voice chat of command author")
     async def join(self, ctx=None, twitch_channel=None, discord_id=None):
@@ -166,16 +166,12 @@ class Sound(commands.Cog):
     async def leave(self, ctx=None):
         await ctx.voice_client.disconnect()
 
-    # TODO: RESUME HERE
-
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd", description="Adds a sound to the sound library")
     async def soundadd(self, ctx, command_name, url):
         # Generates a name and directory based on name
         name = secrets.token_urlsafe(16)
         file_path = Path.cwd() / 'sounds' / f'{name}'
-
-        ydl_opts = self.generate_ydl_opts(file_path)
 
         # Determining if the sound or solely an association exists
         sound_id = await db_handler_sound.sound_exists(url)
@@ -191,7 +187,7 @@ class Sound(commands.Cog):
 
         # There is no sound (there can't be an association if there is no sound)
         elif not sound_id:
-            file_path = self.download_sound(ydl_opts, url, file_path)
+            file_path = self.download_sound(url, file_path)
             data = [Sounds(name=name,
                            url=url,
                            file_directory=str(file_path))]
@@ -205,7 +201,6 @@ class Sound(commands.Cog):
             await db_handler.insert(data)
 
             await ctx.send(f'{command_name} has been added!')
-        # ! We are hitting this when trying to add a sound, not sure what's happening
         else:
             await ctx.send(f'{command_name} already exists!')
 
@@ -228,10 +223,7 @@ class Sound(commands.Cog):
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds", description="Shows the sounds in the sound library")
     async def viewsounds(self, ctx):
-        config = Config(ctx.guild)
-        db = TinyDB(config.sounds)
-        sounds = [sound.get('command_name') for sound in db]
-        await ctx.send(sounds)
+        await ctx.send(await db_handler_sound.view_guild_sounds(ctx.guild))
 
 
 def setup(bot):

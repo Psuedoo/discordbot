@@ -209,8 +209,6 @@ class Sound(commands.Cog):
         else:
             await ctx.send(f'{command_name} already exists!')
 
-
-
     @commands.command(name="play", description="Plays a sound from the sound library")
     async def play(self, ctx, sound):
         if not ctx.voice_client:
@@ -219,25 +217,13 @@ class Sound(commands.Cog):
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="sounddelete", description="Deletes a sound from the sound library")
-    async def sound_delete(self, ctx, name):
-        Command = Query()
-        config = Config(ctx.guild)
-        db = TinyDB(config.sounds)
-        table = db.table('_default')
-
+    async def sound_delete(self, ctx, command_name):
         try:
-            sound_dir = [sound.get('file') for sound in db if sound.get('command_name') == name][0]
-        except IndexError as e:
-            await ctx.send("Sound doesn't exist")
-            return
-
-        try:
-            table.remove(Command.command_name == name)
-            os.remove(os.path.expanduser(sound_dir))
+            await db_handler_sound.delete_sound(ctx.guild, command_name)
         except:
-            await ctx.send(f"Failed to delete {name} sound.")
+            await ctx.send(f'Could not delete {command_name}.')
         else:
-            await ctx.send(f"Successfully deleted {name} sound!")
+            await ctx.send(f'Successfully deleted {command_name}')
 
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="viewsounds", description="Shows the sounds in the sound library")

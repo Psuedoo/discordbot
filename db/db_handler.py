@@ -6,7 +6,7 @@ from db.models import *
 
 
 async def connection():
-    engine = create_async_engine('postgresql://psuedo@192.168.0.179/discordbot_dev', echo=False)
+    engine = create_async_engine('postgresql://psuedo@192.168.0.179/discordbot_dev', echo=True)
     session = AsyncSession(bind=engine)
     return session
 

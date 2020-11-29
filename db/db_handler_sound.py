@@ -38,3 +38,14 @@ async def get_sound_id(name):
 def local_get_sound_id(session, name):
     row = session.query(Sounds).filter(Sounds.name == name).one_or_none()
     return row.id
+
+
+async def delete_sound(guild, command_name):
+    async with await db_handler.connection() as c:
+        return await c.run_sync(local_delete_sound, guild.id, command_name)
+
+
+def local_delete_sound(session, guild_id, command_name):
+    session.query(SoundsAssociation).filter(SoundsAssociation.command == command_name,
+                                            SoundsAssociation.guild_id == guild_id).delete()
+    session.commit()

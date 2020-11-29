@@ -46,6 +46,21 @@ async def delete_sound(guild, command_name):
 
 
 def local_delete_sound(session, guild_id, command_name):
-    session.query(SoundsAssociation).filter(SoundsAssociation.command == command_name,
-                                            SoundsAssociation.guild_id == guild_id).delete()
+    row = session.query(SoundsAssociation).filter(SoundsAssociation.command == command_name,
+                                                  SoundsAssociation.guild_id == guild_id).one_or_none()
+    if row:
+        print('Association found')
+        sound_id = row.sound_id
+        print(f'{sound_id=}')
+        sounds = session.query(SoundsAssociation).filter(SoundsAssociation.sound_id == sound_id)
+        sounds_list = [sound for sound in sounds]
+
+        if len(sounds_list) > 1:
+            session.delete(row)
+        elif len(sounds_list) == 1:
+            session.delete(row)
+            session.query(Sounds).filter(Sounds.id == sound_id).delete()
+    else:
+        return
+
     session.commit()

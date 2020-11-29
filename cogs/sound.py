@@ -48,7 +48,7 @@ class Sound(commands.Cog):
                 self.queue.task_done()
 
     async def sound_handler(self, sound, discord_id, client):
-        sound = self.get_sound_file(sound, discord_id)
+        sound = await self.get_sound_file(sound, discord_id)
         if sound:
             await self.queue.put(sound)
             async with self.lock:
@@ -58,13 +58,9 @@ class Sound(commands.Cog):
         else:
             print("No sound")
 
-    def get_sound_file(self, sound, discord_id=None):
-        Command = Query()
+    async def get_sound_file(self, command_name, discord_id=None):
         guild = self.bot.get_guild(int(discord_id))
-        config = Config(guild)
-        db = TinyDB(config.sounds)
-
-        return db.search(Command.command_name == sound)[0]['file']
+        return await db_handler_sound.get_sound_directory(guild, command_name)
 
     def download_sound(self, url, file_path):
         with youtube_dl.YoutubeDL({'format': 'bestaudio',
@@ -86,8 +82,7 @@ class Sound(commands.Cog):
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
         if not ctx:
             guild = self.bot.get_guild(int(discord_id))
-            config = Config(guild)
-            streamer = await guild.fetch_member(int(config.streamer_id))
+            streamer = await guild.fetch_member(await db_handler_sound.get_streamer_id(guild.id))
             channel = streamer.voice.channel
             if channel:
                 return await channel.connect()

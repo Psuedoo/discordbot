@@ -26,6 +26,7 @@ class Configs(Base):
     prefix = Column(String(10))
     reaction_message_id = Column(BigInteger)
     reaction_channel_id = Column(BigInteger)
+    streamer_id = Column(BigInteger)
 
 
 class Roles(Base):

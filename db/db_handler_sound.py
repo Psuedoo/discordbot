@@ -78,3 +78,25 @@ async def view_guild_sounds(guild):
 def local_view_guild_sounds(session, guild_id):
     sounds = session.query(SoundsAssociation).filter(SoundsAssociation.guild_id == guild_id)
     return [sound.command for sound in sounds]
+
+
+async def get_streamer_id(session, guild):
+    async with await db_handler.connection() as c:
+        return await c.run_sync(local_get_streamer_id, guild.id)
+
+
+def local_get_streamer_id(session, guild_id):
+    guild = session.query(Configs).filter(Configs.id == guild_id).one_or_none()
+    return guild.streamer_id
+
+
+async def get_sound_directory(guild, command):
+    async with await db_handler.connection() as c:
+        return await c.run_sync(local_get_sound_directory, guild.id, command)
+
+
+def local_get_sound_directory(session, guild_id, command):
+    association = session.query(SoundsAssociation).filter(SoundsAssociation.guild_id == guild_id,
+                                                          SoundsAssociation.command == command).one_or_none()
+    sound = session.query(Sounds).filter(Sounds.id == association.sound_id).one_or_none()
+    return sound.file_directory

@@ -1,7 +1,7 @@
 from cogs.utils import checks
 from discord.ext import commands
 from config import Config
-from db import db_handler
+from db import db_handler, db_handler_admin
 
 
 class Admin(commands.Cog):
@@ -48,9 +48,7 @@ class Admin(commands.Cog):
     @commands.command(name="setstreamerid", description="Set the streamer id for main twitch streamer")
     @commands.check(checks.is_bot_enabled)
     async def set_streamer_id(self, ctx, streamer_id):
-        config = Config(ctx.guild)
-        config.streamer_id = streamer_id
-        config.update_config()
+        await db_handler_admin.set_streamer_id(ctx.guild, streamer_id)
         await ctx.send("Successfully set streamer id!")
 
     @commands.check(checks.is_bot_enabled)

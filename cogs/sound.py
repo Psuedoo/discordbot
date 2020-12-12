@@ -7,7 +7,7 @@ from pathlib import Path
 from cogs.utils import checks
 from discord.ext import commands
 
-from db import db_handler, db_handler_sound
+from db import db_handler, db_handler_sound, db_handler_admin
 from db.models import Sounds
 from db.models import SoundsAssociation
 
@@ -61,10 +61,16 @@ class Sound(commands.Cog):
         return await db_handler_sound.get_sound_directory(guild, command_name)
 
     def download_sound(self, url, file_path):
-        with youtube_dl.YoutubeDL({'format': 'bestaudio',
-                                   'noplaylist': True,
-                                   'outtmpl': f'{file_path}.%(ext)s',
-                                   'postprocessors': [{'key': 'FFmpegExtractAudio'}]}) as ydl:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'noplaylist': True,
+            'outtmpl': f'{file_path}.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio'
+            }]
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
         for file in self.path.iterdir():
@@ -98,6 +104,7 @@ class Sound(commands.Cog):
     async def leave(self, ctx=None):
         await ctx.voice_client.disconnect()
 
+    # TODO : Sometimes when trying to add sound it doesn't do audio only
     @commands.check(checks.is_bot_enabled)
     @commands.command(name="soundadd", description="Adds a sound to the sound library")
     async def soundadd(self, ctx, command_name, url):
@@ -109,11 +116,14 @@ class Sound(commands.Cog):
         sound_id = await db_handler_sound.sound_exists(url)
         association_sound_id = await db_handler_sound.association_exists(ctx.guild, url)
 
+        channel_name = await db_handler_admin.get_twitch(ctx.guild)
+
         # There is a valid sound, but no association
         if sound_id and not association_sound_id:
             data = [SoundsAssociation(guild_id=ctx.guild.id,
                                       sound_id=sound_id,
-                                      command=command_name)]
+                                      command=command_name,
+                                      channel_name=channel_name)]
             await db_handler.insert(data)
             await ctx.send(f'{command_name} has been added!')
 
@@ -129,7 +139,8 @@ class Sound(commands.Cog):
 
             data = [SoundsAssociation(guild_id=ctx.guild.id,
                                       sound_id=sound_id,
-                                      command=command_name)]
+                                      command=command_name,
+                                      channel_name=channel_name)]
             await db_handler.insert(data)
 
             await ctx.send(f'{command_name} has been added!')

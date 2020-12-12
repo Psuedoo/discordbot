@@ -23,7 +23,7 @@ async def initialize_guilds(guilds=[]):
             if not await c.run_sync(guild_exists, guild.id):
                 print(f"Adding {guild.name} to database.")
                 data = [
-                    Guilds(id=guild.id, name=guild.name, owner_id=guild.owner_id),
+                    Guilds(id=guild.id, name=guild.name, owner_id=guild.owner_id, twitch_channel=None),
                     Configs(id=guild.id, prefix='?', reaction_message_id=None, reaction_channel_id=None)
                 ]
                 for role in guild.roles:

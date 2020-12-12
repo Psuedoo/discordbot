@@ -11,7 +11,9 @@ class Guilds(Base):
     id = Column(BigInteger, primary_key=True)
     name = Column(String(20))
     owner_id = Column(BigInteger)
+    twitch_channel = Column(String)
     config = relationship('Configs', backref='guilds', cascade='all, delete')
+    twitch = relationship('Twitch', backref='twitch', cascade='all, delete')
     roles = relationship('Roles', backref='guilds', cascade='all, delete')
     sounds = relationship('SoundsAssociation', backref='guilds', cascade='all, delete')
     commands = relationship('Commands', backref='guilds', cascade='all, delete')
@@ -54,6 +56,7 @@ class SoundsAssociation(Base):
     id = Column(Integer, primary_key=True)
     # guild = relationship('Guilds', back_populates='sounds')
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))
+    channel_name = Column(String, ForeignKey('twitch.name'))
     # sound = relationship('Sounds', back_populates='guilds')
     sound_id = Column(Integer, ForeignKey('sounds.id'))
     command = Column(String(20))
@@ -83,6 +86,32 @@ class StreamersAssociation(Base):
     streamer_id = Column(Integer, ForeignKey('streamers.id'))
     announcement_channel_id = Column(BigInteger)
     alert = Column(Boolean)
+
+
+class Twitch(Base):
+    __tablename__ = 'twitch'
+    name = Column(String, primary_key=True)
+    shoutout_message = Column(String)
+    guild_invite_link = Column(String)
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
+    sounds = relationship('SoundsAssociation', backref='twitch', cascade='all, delete')
+    quotes = relationship('Quotes', backref='twitch', cascade='all, delete')
+
+
+class Quotes(Base):
+    __tablename__ = 'quotes'
+    id = Column(Integer, primary_key=True)
+    channel_name = Column(String, ForeignKey('twitch.name'))
+    author = Column(String)
+    quote = Column(String)
+
+
+class TwitchCommands(Base):
+    __tablename__ = 'twitchcommands'
+    id = Column(Integer, primary_key=True)
+    channel_name = Column(String, ForeignKey('twitch.name'))
+    name = Column(String)
+    response = Column(String)
 
 
 if __name__ == '__main__':

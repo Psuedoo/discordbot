@@ -56,6 +56,16 @@ class Admin(commands.Cog):
         await db_handler.set_prefix(ctx.guild, prefix)
         await ctx.send(f"Prefix has been updated to {prefix}")
 
+    @commands.check(checks.is_bot_enabled)
+    @commands.command(name="settwitch", description="Sets the Twitch channel for the discord")
+    async def set_twitch(self, ctx, channel_name):
+        try:
+            await db_handler_admin.set_twitch(ctx.guild, channel_name)
+            await db_handler_admin.fix_sounds(ctx.guild)
+            await ctx.send('Successfully set the Twitch channel!')
+        except:
+            await ctx.send('Couldnt set the Twitch')
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))

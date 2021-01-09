@@ -11,6 +11,7 @@ class Guilds(Base):
     id = Column(BigInteger, primary_key=True)
     name = Column(String(20))
     owner_id = Column(BigInteger)
+    twitch_channel = Column(String)
     config = relationship('Configs', backref='guilds', cascade='all, delete')
     twitch = relationship('Twitch', backref='twitch', cascade='all, delete')
     roles = relationship('Roles', backref='guilds', cascade='all, delete')

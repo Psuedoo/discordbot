@@ -80,7 +80,7 @@ def local_view_guild_sounds(session, guild_id):
     return [sound.command for sound in sounds]
 
 
-async def get_streamer_id(session, guild):
+async def get_streamer_id(guild):
     async with await db_handler.connection() as c:
         return await c.run_sync(local_get_streamer_id, guild.id)
 

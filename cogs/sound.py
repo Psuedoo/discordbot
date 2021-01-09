@@ -86,7 +86,8 @@ class Sound(commands.Cog):
         # If Twitch_channel_name == guild.fetch_member(config.streamer_id) and streamer is in VC: Join that vc
         if not ctx:
             guild = self.bot.get_guild(int(discord_id))
-            streamer = await guild.fetch_member(await db_handler_sound.get_streamer_id(guild.id))
+            streamer_id = await db_handler_sound.get_streamer_id(guild)
+            streamer = await guild.fetch_member(streamer_id)
             channel = streamer.voice.channel
             if channel:
                 return await channel.connect()

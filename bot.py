@@ -20,7 +20,7 @@ initial_extensions = [
 ]
 
 global bot
-bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 bot.owner_id = os.getenv("OWNER_ID", None)
 
 

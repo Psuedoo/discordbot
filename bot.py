@@ -1,6 +1,7 @@
 import os
 import discord
 import asyncio
+from db.db_handler import DatabaseHandler
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -27,6 +28,8 @@ bot.owner_id = os.getenv("OWNER_ID", None)
 @bot.event
 async def on_ready():
     print("Logged in")
+    db_handler = DatabaseHandler()
+    await db_handler.initialize_guilds(bot.guilds)
 
     # TODO : Once converted bot into class, make presence setting command
     game = discord.Game("operating on myself")

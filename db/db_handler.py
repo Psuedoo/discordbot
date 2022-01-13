@@ -31,12 +31,12 @@ class DatabaseHandler:
 
                     data = [
                         Guilds(
-                            id=guild.id,
+                            id=str(guild.id),
                             name=guild.name,
-                            owner_id=guild.owner_id
+                            owner_id=str(guild.owner_id)
                         ),
                         Configs(
-                            id=guild.id,
+                            id=str(guild.id),
                             prefix=os.getenv('PREFIX', '/')
                         )
                     ]
@@ -44,5 +44,5 @@ class DatabaseHandler:
                     await self.insert(data)
 
     def guild_exists(self, session, guild_id):
-        guilds = session.query(Guilds).filter(Guilds.id == guild_id, Guilds.id > 0)
+        guilds = session.query(Guilds).filter(str(Guilds.id) == str(guild_id))
         return len(guilds.all()) > 0

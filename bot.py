@@ -11,29 +11,38 @@ if os.path.exists("./.env"):
 
 
 token = os.getenv("TOKEN", None)
-prefix = os.getenv("PREFIX", "?")
+# prefix = os.getenv("PREFIX", "?")
 
 intents = discord.Intents.default()
 intents.members = True
 
 initial_extensions = [
-    "cogs.basic"
+    "cogs.basic",
+    "cogs.mod"
 ]
 
+db_handler = DatabaseHandler()
+
 global bot
-bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot = commands.Bot(command_prefix="?", intents=intents)
 bot.owner_id = os.getenv("OWNER_ID", None)
+
 
 
 @bot.event
 async def on_ready():
     print("Logged in")
-    db_handler = DatabaseHandler()
     await db_handler.initialize_guilds(bot.guilds)
 
+    # TODO: Change prefix based on Guild Config from db
+    # prefix = db_handler().get_prefix()
+    
     # TODO : Once converted bot into class, make presence setting command
     game = discord.Game("operating on myself")
     await bot.change_presence(status=discord.Status.online, activity=game)
+
+# @bot.event
+# async def on_message():
 
 @bot.command(name="test", hidden=True)
 async def test(ctx):

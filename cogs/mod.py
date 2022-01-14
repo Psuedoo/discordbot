@@ -1,0 +1,31 @@
+from discord.ext import commands
+from .utils.checks import *
+from db.db_handler import DatabaseHandler
+from db.models import Commands
+
+class Mod(commands.Cog):
+    """*Mod commands for mod things*"""
+    def __init__(self, bot):
+        self.bot = bot
+        self.hidden = False
+        self.db_handler = DatabaseHandler()
+
+    @commands.command(name="addcommand")
+    @commands.check(is_mod)
+    async def add_command(self, ctx, command_name, command_response):
+        if command_name and command_response:
+            await self.db_handler.insert(
+                [
+                    Commands(
+                        guild_id=str(ctx.guild.id),
+                        name=command_name,
+                        response=command_response,
+                    )
+                ]
+            )
+            await ctx.send("Added command")
+        else:
+            await ctx.send('lol idk bro')
+
+def setup(bot):
+    bot.add_cog(Mod(bot))

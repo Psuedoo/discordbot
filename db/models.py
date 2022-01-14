@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Table, Boolean, Column, String, Integer, ForeignKey
+from sqlalchemy import create_engine, Table, Boolean, Column, String, Integer, ForeignKey, Sequence
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.orm.session import sessionmaker
 
@@ -28,10 +28,18 @@ class Guilds(Base):
     name = Column(String(20))
     owner_id = Column(String(20))
     config = relationship('Configs', backref='guilds', cascade= 'all, delete')
+    commands = relationship('Commands', backref='guilds', cascade= 'all, delete')
 
 class Configs(Base):
     __tablename__ = 'config'
 
     id = Column(String(20), ForeignKey('guilds.id'), primary_key=True)
     prefix = Column(String(10))
-    
+
+class Commands(Base):
+    __tablename__ = 'commands'
+
+    id = Column(String(20), Sequence('commands_id_seq'), primary_key=True)
+    guild_id = Column(String(20), ForeignKey('guilds.id'))
+    name = Column(String(50))
+    response = Column(String(150))

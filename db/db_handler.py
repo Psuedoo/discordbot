@@ -76,3 +76,12 @@ class DatabaseHandler:
         command = session.query(Commands).filter(Commands.guild_id == str(guild_id), Commands.name == command_name).first()
         return command.response
 
+    async def remove_command(self, guild, command_name):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_remove_command, guild.id, command_name)
+
+    def local_remove_command(self, session, guild_id, command_name):
+        command = session.query(Commands).filter(Commands.guild_id == str(guild_id), Commands.name == command_name).delete()
+        session.commit()
+
+        return command

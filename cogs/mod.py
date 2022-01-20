@@ -39,5 +39,15 @@ class Mod(commands.Cog):
         response = await self.db_handler.get_command(ctx.guild, command_name)
         await ctx.send(response)
 
+    @commands.command(name="removecommand")
+    @commands.check(is_mod)
+    async def remove_command(self, ctx, command_name):
+        command = await self.db_handler.remove_command(ctx.guild, command_name)
+        if command:
+            await ctx.send(f'{command_name} has been removed.')
+        else:
+            await ctx.send(f'{command_name} was not found.')
+
+
 def setup(bot):
     bot.add_cog(Mod(bot))

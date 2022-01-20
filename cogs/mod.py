@@ -27,5 +27,17 @@ class Mod(commands.Cog):
         else:
             await ctx.send('lol idk bro')
 
+    @commands.command(name="getcommands")
+    @commands.check(is_mod)
+    async def get_commands(self, ctx):
+        commands = await self.db_handler.get_commands(ctx.guild)
+        await ctx.send(commands)
+
+    @commands.command(name="getcommand")
+    @commands.check(is_mod)
+    async def get_command(self, ctx, command_name):
+        response = await self.db_handler.get_command(ctx.guild, command_name)
+        await ctx.send(response)
+
 def setup(bot):
     bot.add_cog(Mod(bot))

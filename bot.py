@@ -32,11 +32,14 @@ bot.owner_id = os.getenv("OWNER_ID", None)
 @bot.event
 async def on_ready():
     print("Logged in")
+
     await db_handler.initialize_guilds(bot.guilds)
 
+    # for guild in bot.guilds:
+
     # TODO: Change prefix based on Guild Config from db
-    # prefix = db_handler().get_prefix()
-    
+        # prefix = await db_handler.get_prefix(guild)
+        # bot.command_prefix = prefix
     # TODO : Once converted bot into class, make presence setting command
     game = discord.Game("operating on myself")
     await bot.change_presence(status=discord.Status.online, activity=game)

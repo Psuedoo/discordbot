@@ -48,11 +48,13 @@ class DatabaseHandler:
         return len(guilds.all()) > 0
         # try return not (guilds is None) TELL PYGON THE OUTCOME (needs the one_or_none)
 
-    def get_prefix(self, guild_id):
-        if guild_exists(guild_id):
-            prefix = session.query(Configs).filter(id == str(guild_id)).first()
-        else:
-            prefix = "!"
+    async def get_prefix(self, guild):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_get_prefix, guild.id)
+
+
+    def local_get_prefix(self, session, guild_id):
+        prefix = session.query(Configs).filter(id == str(guild_id)).first()
         return prefix
 
     # def get_command(self, session, guild_id, command):

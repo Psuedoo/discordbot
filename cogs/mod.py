@@ -48,6 +48,27 @@ class Mod(commands.Cog):
         else:
             await ctx.send(f'{command_name} was not found.')
 
+    @commands.command(name="createreactionmessage")
+    @commands.check(is_mod)
+    async def create_reaction_message(self, ctx):
+        reaction_message = await ctx.send('embed')
+
+        await db_handler.set_reaction_message(ctx.guild, reaction_message)
+
+        await ctx.author.send("Added reaction role message.")
+
+        # Maybe loop roles, add roles with assigned emojis
+
+
+    # TODO: Add command for getting reaction role message info
+
+    @commands.command(name="setroleemoji")
+    @commands.check(is_mod)
+    async def set_role_emoji(self, ctx, role, emoji):
+        pass
+        # emoji => Roles.emoji
+
+
 
 def setup(bot):
     bot.add_cog(Mod(bot))

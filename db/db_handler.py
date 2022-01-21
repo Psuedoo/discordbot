@@ -37,11 +37,24 @@ class DatabaseHandler:
                         ),
                         Configs(
                             id=str(guild.id),
-                            prefix=os.getenv('PREFIX', '/')
-                        )
+                            prefix=os.getenv('PREFIX', '/'),
+                            role_message_id = None,
+                            role_channel_id = None
+                        ),
                     ]
 
                     await self.insert(data)
+
+                    for role in guild.roles:
+                        data = [
+                            Roles(
+                                id=str(role.id),
+                                name=role.name,
+                                emoji=None
+                            )
+                        ]
+
+                        await self.insert(data)
 
     def guild_exists(self, session, guild_id):
         guilds = session.query(Guilds).filter(Guilds.id == str(guild_id))
@@ -87,3 +100,25 @@ class DatabaseHandler:
         session.commit()
 
         return command
+
+    async def set_reaction_message(self, guild, message):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_set_reaction_message, guild.id, message.id, message.channel.id)
+    
+    def local_set_reaction_message(self, session, guild_id, message_id, channel_id):
+        config = session.query(Configs).filter(id == str(guild_id))
+        config.role_message_id = message_id
+        config.channel_id = channel_id
+        session.commit()
+
+    async def get_reaction_message(self, guild):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_get_reaction_message, guild.id)
+    
+    def local_get_reaction_message(self, session, guild_id, message_id, channel_id):
+        config = session.query(Configs).filter(id == str(guild_id)).first()
+
+        return {
+            'message_id': config.role_message_id,
+            'channel_id': config.role_channel_id
+        }

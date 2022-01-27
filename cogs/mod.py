@@ -53,7 +53,7 @@ class Mod(commands.Cog):
     async def create_reaction_message(self, ctx):
         reaction_message = await ctx.send('embed')
 
-        await db_handler.set_reaction_message(ctx.guild, reaction_message)
+        await self.db_handler.set_reaction_message(ctx.guild, reaction_message)
 
         await ctx.author.send("Added reaction role message.")
 
@@ -61,6 +61,12 @@ class Mod(commands.Cog):
 
 
     # TODO: Add command for getting reaction role message info
+    @commands.command(name="getreactionmessage")
+    @commands.check(is_mod)
+    async def get_reaction_message(self, ctx):
+        reaction_message = await self.db_handler.get_reaction_message(ctx.guild)
+        await ctx.send(reaction_message)
+
 
     @commands.command(name="setroleemoji")
     @commands.check(is_mod)

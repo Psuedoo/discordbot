@@ -106,17 +106,17 @@ class DatabaseHandler:
             return await c.run_sync(self.local_set_reaction_message, guild.id, message.id, message.channel.id)
     
     def local_set_reaction_message(self, session, guild_id, message_id, channel_id):
-        config = session.query(Configs).filter(id == str(guild_id))
-        config.role_message_id = message_id
-        config.channel_id = channel_id
+        config = session.query(Configs).filter(Configs.id == str(guild_id)).first()
+        config.role_message_id = str(message_id)
+        config.role_channel_id = str(channel_id)
         session.commit()
 
     async def get_reaction_message(self, guild):
         async with await self.connection() as c:
             return await c.run_sync(self.local_get_reaction_message, guild.id)
     
-    def local_get_reaction_message(self, session, guild_id, message_id, channel_id):
-        config = session.query(Configs).filter(id == str(guild_id)).first()
+    def local_get_reaction_message(self, session, guild_id):
+        config = session.query(Configs).filter(Configs.id == str(guild_id)).first()
 
         return {
             'message_id': config.role_message_id,

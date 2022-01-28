@@ -48,6 +48,7 @@ class DatabaseHandler:
                     for role in guild.roles:
                         data = [
                             Roles(
+                                guild_id=str(guild.id),
                                 id=str(role.id),
                                 name=role.name,
                                 emoji=None
@@ -101,6 +102,19 @@ class DatabaseHandler:
 
         return command
 
+    async def set_role_emoji(self, guild, role_id, emoji):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_set_role_emoji, guild.id, role_id, emoji)
+
+    def local_set_role_emoji(self, session, guild_id, role_id, emoji):
+        role = self.local_get_role(session, guild_id, role_id)
+        role.emoji = emoji
+        session.commit()
+
+    def local_get_role(self, session, guild_id, role_id):
+        role = session.query(Roles).filter(Roles.guild_id == str(guild_id), Roles.id == str(role_id)).first()
+        return role
+
     async def set_reaction_message(self, guild, message):
         async with await self.connection() as c:
             return await c.run_sync(self.local_set_reaction_message, guild.id, message.id, message.channel.id)
@@ -119,6 +133,35 @@ class DatabaseHandler:
         config = session.query(Configs).filter(Configs.id == str(guild_id)).first()
 
         return {
+            'guild_id': config.id,
             'message_id': config.role_message_id,
             'channel_id': config.role_channel_id
         }
+
+    async def get_roles(self, guild):
+        async with await self.connection() as c:
+            return await (c.run_sync(self.local_get_roles, guild.id))
+
+    def local_get_roles(self, session, guild_id):
+        roles = session.query(Roles).filter(Roles.guild_id == str(guild_id)).all()
+        return [
+            {
+                'id': role.id,
+                'name': role.name,
+                'emoji': role.emoji,
+            } for role in roles
+        ]
+
+    async def get_reaction_roles(self, guild):
+        async with await self.connection() as c:
+            return await (c.run_sync(self.local_get_reaction_roles, guild.id))
+
+    def local_get_reaction_roles(self, session, guild_id):
+        roles = session.query(Roles).filter(Roles.guild_id == str(guild_id)).all()
+        return [
+            {
+                'id': role.id,
+                'name': role.name,
+                'emoji': role.emoji
+            } for role in roles if role.emoji
+        ]

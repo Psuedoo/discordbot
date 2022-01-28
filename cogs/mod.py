@@ -57,6 +57,11 @@ class Mod(commands.Cog):
 
         await ctx.author.send("Added reaction role message.")
 
+        roles = await self.db_handler.get_reaction_roles(ctx.guild)
+
+        for role in roles:
+            await reaction_message.add_reaction(role['emoji'])
+
         # Maybe loop roles, add roles with assigned emojis
 
 
@@ -67,14 +72,24 @@ class Mod(commands.Cog):
         reaction_message = await self.db_handler.get_reaction_message(ctx.guild)
         await ctx.send(reaction_message)
 
+    @commands.command(name="getroles")
+    @commands.check(is_mod)
+    async def get_roles(self, ctx):
+        roles = await self.db_handler.get_roles(ctx.guild)
+        await ctx.send(roles)
+
+    @commands.command(name="getreactionroles")
+    @commands.check(is_mod)
+    async def get_reaction_roles(self, ctx):
+        roles = await self.db_handler.get_reaction_roles(ctx.guild)
+        await ctx.send(roles)
+
 
     @commands.command(name="setroleemoji")
     @commands.check(is_mod)
     async def set_role_emoji(self, ctx, role, emoji):
-        pass
-        # emoji => Roles.emoji
-
-
+        print(role[3:-1])
+        await self.db_handler.set_role_emoji(ctx.guild, role[3:-1], emoji)
 
 def setup(bot):
     bot.add_cog(Mod(bot))

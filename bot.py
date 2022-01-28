@@ -35,6 +35,8 @@ async def on_ready():
 
     await db_handler.initialize_guilds(bot.guilds)
 
+    # TODO: When adding role through guild gui, add role to db
+
     # for guild in bot.guilds:
 
     # TODO: Change prefix based on Guild Config from db

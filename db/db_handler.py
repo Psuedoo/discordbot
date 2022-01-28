@@ -111,6 +111,10 @@ class DatabaseHandler:
         role.emoji = emoji
         session.commit()
 
+    async def get_role(self, guild, role_id):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_get_role, guild.id, role_id)
+
     def local_get_role(self, session, guild_id, role_id):
         role = session.query(Roles).filter(Roles.guild_id == str(guild_id), Roles.id == str(role_id)).first()
         return role

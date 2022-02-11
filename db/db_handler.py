@@ -14,7 +14,7 @@ class DatabaseHandler:
         self.session = initialize_db()
 
     async def connection(self):
-        engine = create_async_engine(f'postgresql+asyncpg://{self.USERNAME}:{self.PASSWORD}@{self.SERVER_IP}/{self.DATABASE_NAME}', echo=True)
+        engine = create_async_engine(f'postgresql+asyncpg://{self.USERNAME}:{self.PASSWORD}@{self.SERVER_IP}/{self.DATABASE_NAME}')
         session = AsyncSession(bind=engine)
         return session
 
@@ -102,6 +102,34 @@ class DatabaseHandler:
 
         return command
 
+    async def get_role(self, guild, role_id):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_get_role, guild.id, role_id)
+
+    def local_get_role(self, session, guild_id, role_id):
+        role = session.query(Roles).filter(Roles.guild_id == str(guild_id), Roles.id == str(role_id)).first()
+        return role
+
+    async def update_role(self, guild, old_role, new_role):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_update_role, guild.id, old_role, new_role)
+
+    def local_update_role(self, session, guild_id, old_role, new_role):
+        role = self.local_get_role(session, guild_id, old_role.id)
+        if role.id == str(new_role.id) and role.guild_id == str(new_role.guild.id):
+            role.name = new_role.name
+            session.commit()
+
+    async def remove_role(self, guild, role_id):
+        async with await self.connection() as c:
+            return await c.run_sync(self.local_remove_role, guild.id, role_id)
+
+    def local_remove_role(self, session, guild_id, role_id):
+        role = session.query(Roles).filter(Roles.guild_id == str(guild_id), Roles.id == str(role_id)).delete()
+        session.commit()
+
+        return role
+
     async def set_role_emoji(self, guild, role_id, emoji):
         async with await self.connection() as c:
             return await c.run_sync(self.local_set_role_emoji, guild.id, role_id, emoji)
@@ -111,13 +139,16 @@ class DatabaseHandler:
         role.emoji = emoji
         session.commit()
 
-    async def get_role(self, guild, role_id):
+    async def remove_role_emoji(self, guild, role_id):
         async with await self.connection() as c:
-            return await c.run_sync(self.local_get_role, guild.id, role_id)
+            return await c.run_sync(self.local_remove_role_emoji, guild.id, role_id)
 
-    def local_get_role(self, session, guild_id, role_id):
-        role = session.query(Roles).filter(Roles.guild_id == str(guild_id), Roles.id == str(role_id)).first()
-        return role
+    def local_remove_role_emoji(self, session, guild_id, role_id):
+        role = self.local_get_role(session, guild_id, role_id)
+        role.emoji = None
+        session.commit()
+
+
 
     async def set_reaction_message(self, guild, message):
         async with await self.connection() as c:
